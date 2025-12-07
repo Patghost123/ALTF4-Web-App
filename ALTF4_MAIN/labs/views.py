@@ -7,6 +7,5 @@ def index(request):
     return render(request, 'labs/index.html', {'labs': labs})
 
 def lab_detail(request, slug):
-    """ Detailed view for a specific lab """
     lab = get_object_or_404(Lab, slug=slug) 
     return render(request, 'labs/detail.html', {'lab': lab})

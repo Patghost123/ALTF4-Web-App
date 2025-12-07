@@ -17,8 +17,10 @@ Including another URLconf
 from django import views
 from django.contrib import admin
 from django.urls import path, include
+from . import views as root_views 
 
 urlpatterns = [
+    path('', root_views.home_redirect_view, name='home'),
     path('admin/', admin.site.urls),
     path('reservations/', include('reservations.urls')),
     path('labs/', include('labs.urls')), 

@@ -59,7 +59,9 @@ ROOT_URLCONF = 'ALTF4_MAIN.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        # FIX: BASE_DIR / 'ALTF4_MAIN' / 'templates' explicitly points to the 
+        # templates folder inside the inner configuration directory.
+        'DIRS': [BASE_DIR / 'ALTF4_MAIN' / 'templates'], 
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
