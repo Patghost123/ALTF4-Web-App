@@ -5,7 +5,6 @@ class Lab(models.Model):
     slug = models.SlugField(unique=True)
     capacity = models.PositiveIntegerField()
     description = models.TextField()
-    # Link to Figma SVG ID
     map_svg_id = models.CharField(max_length=50, unique=True, help_text="Matches ID in Figma SVG")
     is_active = models.BooleanField(default=True)
 

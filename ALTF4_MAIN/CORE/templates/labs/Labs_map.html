@@ -18,14 +18,16 @@
             stroke: #333;
             stroke-width: 2px;
         }
+        /* Status Overrides */
         .status-free { fill: #10B981 !important; } /* Tailwind Green-500 */
         .status-busy { fill: #EF4444 !important; pointer-events: none; } /* Tailwind Red-500 */
         .status-maintenance { fill: #F59E0B !important; } /* Tailwind Amber-500 */
         
-        .map-wrapper {
-            max-width: 800px;
-            margin: 0 auto;
-        }
+        /* Removed fixed .map-wrapper max-width for responsiveness. 
+           Sizing is now managed by the surrounding Tailwind classes (max-w-6xl). 
+           We use w-full on the SVG element to ensure it fills the available space. 
+        */
+
         .tooltip {
             position: absolute;
             background: rgba(0,0,0,0.85);
@@ -38,6 +40,14 @@
             transition: opacity 0.2s;
             z-index: 50;
             white-space: nowrap;
+        }
+        
+        /* Ensure the included SVG scales correctly */
+        #floor-plan {
+            width: 100%; /* Make the SVG fill its container */
+            height: auto; /* Maintain aspect ratio */
+            background-color: #f9fafb; /* Light background for the map area */
+            border-radius: 0.5rem;
         }
     </style>
 </head>
@@ -69,54 +79,38 @@
                 <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-amber-500"></div> Maintenance</div>
             </div>
 
-            <div class="map-wrapper relative">
+            <!-- The wrapper must be full width for the SVG to expand -->
+            <div class="w-full relative"> 
                 <!-- Tooltip Element -->
                 <div id="map-tooltip" class="tooltip"></div>
 
-                <!-- Interactive SVG Map -->
                 <!-- 
-                     IMPORTANT: 
-                     1. This SVG is a placeholder. REPLACE everything below with your Figma SVG export.
-                     2. ENSURE your SVG elements for rooms have IDs matching the Lab.map_svg_id (e.g., id="lab_101").
+                    The included SVG file (STEM_labs.svg) MUST have id="floor-plan" 
+                    on its root <svg> tag. 
                 -->
-                <svg viewBox="0 0 800 400" class="w-full h-auto bg-gray-50 border border-gray-200 rounded-lg" id="floor-plan">
-                    
-                    {% for lab in labs %}
-                    <!-- Django loop populates SVG elements based on your database -->
-                    <g id="{{ lab.map_svg_id }}" 
-                       data-slug="{{ lab.slug }}" 
-                       data-name="{{ lab.name }}" 
-                       data-status="{% if lab.is_active %}free{% else %}maintenance{% endif %}"
-                       class="lab-group"
-                       >
-                        <!-- Placeholder Rect. Replace this with your actual SVG geometry (path, rect, etc.) -->
-                        {% if lab.map_svg_id == 'lab_101' %}
-                            <rect x="50" y="50" width="200" height="150" class="lab-room status-maintenance" />
-                            <text x="150" y="130" text-anchor="middle" class="font-bold fill-white pointer-events-none">CHEM 101</text>
-                        {% elif lab.map_svg_id == 'lab_102' %}
-                            <rect x="300" y="50" width="200" height="150" class="lab-room status-free" />
-                            <text x="400" y="130" text-anchor="middle" class="font-bold fill-white pointer-events-none">PHYS 102</text>
-                        {% elif lab.map_svg_id == 'lab_103' %}
-                            <rect x="550" y="50" width="200" height="300" class="lab-room status-free" />
-                            <text x="650" y="200" text-anchor="middle" class="font-bold fill-white pointer-events-none">ROBOTICS</text>
-                        {% endif %}
-                    </g>
-                    {% endfor %}
-                    
-                    <!-- Example of a room without a corresponding Django object for map background -->
-                    <rect x="250" y="250" width="200" height="100" fill="#E5E7EB" />
-                    <text x="350" y="300" text-anchor="middle" class="fill-gray-500 text-xs pointer-events-none">Storage</text>
-
-                </svg>
+                {% include 'labs/STEM_labs.svg' %}
+                
+                <!-- 
+                    The Django loop that was here is removed, as the attributes 
+                    (id, data-slug, data-name) must be hardcoded into the shapes 
+                    INSIDE the STEM_labs.svg file itself. 
+                -->
             </div>
         </div>
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Use window.onload for greater certainty that the SVG elements are present
+        window.onload = function() {
             const floorPlan = document.getElementById('floor-plan');
             const tooltip = document.getElementById('map-tooltip');
             
+            // Safety check for critical elements
+            if (!floorPlan) {
+                console.error("Critical Error: The SVG map with id='floor-plan' was not found.");
+                return;
+            }
+
             // 1. Fetch Real-time Status from the Reservations API
             fetch('/reservations/api/status/')
                 .then(response => {
@@ -126,28 +120,30 @@
                 .then(data => {
                     const busyIds = data.occupied_ids || []; 
                     
-                    // Update all busy labs
-                    busyIds.forEach(id => {
-                        const el = document.getElementById(id);
-                        if(el) {
-                            const roomShape = el.querySelector('.lab-room');
-                            if (roomShape) {
-                                roomShape.classList.remove('status-free');
-                                roomShape.classList.add('status-busy');
-                                el.setAttribute('data-status', 'busy');
-                            }
-                        }
-                    });
-                    
                     // 2. Add Interactions (Mouseover and Click)
+                    // Select all groups that represent a lab
                     const rooms = document.querySelectorAll('.lab-group');
-                    const mapRect = floorPlan.getBoundingClientRect();
+                    const mapContainerRect = floorPlan.getBoundingClientRect(); // Get map dimensions once
 
                     rooms.forEach(room => {
+                        const svgId = room.id;
                         const roomShape = room.querySelector('.lab-room');
                         if (!roomShape) return;
 
-                        // Mouse Enter/Move: Show Tooltip
+                        // --- Dynamic Status Application ---
+                        let currentStatus = room.getAttribute('data-status'); // Start with DB status (free/maintenance)
+
+                        if (busyIds.includes(svgId)) {
+                            currentStatus = 'busy'; // Override if API reports busy
+                        }
+
+                        // Apply the final color class
+                        roomShape.classList.remove('status-free', 'status-maintenance');
+                        roomShape.classList.add(`status-${currentStatus}`);
+                        room.setAttribute('data-status', currentStatus);
+
+
+                        // --- Mouse Enter/Move: Show Tooltip ---
                         room.addEventListener('mouseenter', (e) => {
                             const name = room.getAttribute('data-name');
                             const status = room.getAttribute('data-status');
@@ -159,13 +155,12 @@
                             `;
                             
                             // Position tooltip
-                            const mapContainerRect = floorPlan.getBoundingClientRect();
                             tooltip.style.left = (e.clientX - mapContainerRect.left + 15) + 'px';
                             tooltip.style.top = (e.clientY - mapContainerRect.top + 15) + 'px';
                         });
 
                         room.addEventListener('mousemove', (e) => {
-                            const mapContainerRect = floorPlan.getBoundingClientRect();
+                            // Update position on move
                             tooltip.style.left = (e.clientX - mapContainerRect.left + 15) + 'px';
                             tooltip.style.top = (e.clientY - mapContainerRect.top + 15) + 'px';
                         });
@@ -174,17 +169,17 @@
                             tooltip.style.opacity = '0';
                         });
 
-                        // Click: Navigate to Detail Page
+                        // --- Click: Navigate to Detail Page ---
                         room.addEventListener('click', function() {
                             const slug = this.getAttribute('data-slug');
                             const status = this.getAttribute('data-status');
                             
                             if (status === 'free' || status === 'maintenance') {
-                                // Navigate to the 'labs' app detail view using the Django URL pattern
+                                // Navigate to the 'labs' app detail view
                                 window.location.href = `/labs/${slug}/`;
                             } else if (status === 'busy') {
-                                console.log(`Lab ${slug} is currently busy.`);
-                                // Optional: Implement a modal message instead of console.log
+                                console.log(`Lab ${slug} is currently busy. Cannot book.`);
+                                // In a real app, you would show a non-alert message here
                             }
                         });
                     });
@@ -192,9 +187,8 @@
                 })
                 .catch(error => {
                     console.error('Error fetching map status:', error);
-                    // Fallback visual feedback if API fails
                 });
-        });
+        };
     </script>
 </body>
 </html>

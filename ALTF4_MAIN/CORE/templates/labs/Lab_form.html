@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<main class="max-w-3xl mx-auto px-6 pb-12">
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 mt-10">
+        <h1 class="text-3xl font-bold text-gray-900 mb-6">
+            {% if form.instance.pk %}
+                Edit Lab: {{ form.instance.name }}
+            {% else %}
+                Create New Lab
+            {% endif %}
+        </h1>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div class="field-wrapper">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                            <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                    {% if field.help_text %}
+                        <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <div class="pt-4 border-t border-gray-100 flex justify-end gap-3">
+                <a href="{% url 'labs:detail' slug=form.instance.slug %}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock content %}

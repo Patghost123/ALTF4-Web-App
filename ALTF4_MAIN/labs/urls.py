@@ -3,6 +3,7 @@ from . import views
 
 app_name = 'labs'
 urlpatterns = [
-    path('', views.index, name='index'), # Map view usually goes here
+    path('', views.index, name='index'), 
+    path('<slug:slug>/edit/', views.LabUpdateView.as_view(), name='edit'), 
     path('<slug:slug>/', views.lab_detail, name='detail'),
 ]
