@@ -22,13 +22,26 @@
         <!-- Header Section -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8">
             <div class="flex flex-col md:flex-row justify-between md:items-start gap-6">
+                
+                <!-- Lab Title and Status -->
                 <div>
                     <div class="flex items-center gap-3 mb-2">
                         <h1 class="text-3xl font-extrabold text-gray-900">{{ lab.name }}</h1>
+                        
+                        <!-- Status Badges based on lab.is_active -->
                         {% if lab.is_active %}
                             <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">Active</span>
                         {% else %}
-                            <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">Maintenance</span>
+                            <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">Maintenance/Offline</span>
+                        {% endif %}
+                        
+                        <!-- NEW: Edit Link for Staff Only -->
+                        {% if user.is_staff %}
+                        <a href="{% url 'labs:edit' slug=lab.slug %}" 
+                           class="text-sm font-medium text-indigo-600 hover:underline ml-4 flex items-center gap-1">
+                           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.878a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                           Edit Details
+                        </a>
                         {% endif %}
                     </div>
                     <p class="text-gray-500 text-sm font-mono">ID: {{ lab.map_svg_id }}</p>
