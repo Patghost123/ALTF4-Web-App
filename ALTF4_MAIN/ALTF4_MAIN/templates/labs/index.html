@@ -1,0 +1,200 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEM Lab Hub | Facility Map</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for map visualization */
+        .lab-room {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            fill: #9CA3AF; /* Default grey color */
+        }
+        .lab-room:hover {
+            opacity: 0.8;
+            stroke: #333;
+            stroke-width: 2px;
+        }
+        .status-free { fill: #10B981 !important; } /* Tailwind Green-500 */
+        .status-busy { fill: #EF4444 !important; pointer-events: none; } /* Tailwind Red-500 */
+        .status-maintenance { fill: #F59E0B !important; } /* Tailwind Amber-500 */
+        
+        .map-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.85);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 50;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+
+    <!-- Navigation Placeholder -->
+    <nav class="bg-white border-b border-gray-200 px-6 py-4 mb-8 shadow-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <a href="{% url 'labs:index' %}" class="font-bold text-2xl text-indigo-600">STEM Hub</a>
+            <div class="space-x-4">
+                <a href="/reservations/book/" class="text-sm text-gray-600 hover:text-indigo-600">My Bookings</a>
+                <a href="/analytics/dashboard/" class="text-sm text-gray-600 hover:text-indigo-600">Analytics</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-6 pb-12">
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-bold text-gray-900">Live Facility Map</h1>
+            <p class="text-gray-600 mt-2">Real-time status of all active labs and workshops.</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
+            
+            <!-- Legend -->
+            <div class="flex justify-center gap-6 mb-6 text-sm font-medium">
+                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-green-500"></div> Available (Click to Book)</div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div> Occupied (Busy)</div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-amber-500"></div> Maintenance</div>
+            </div>
+
+            <div class="map-wrapper relative">
+                <!-- Tooltip Element -->
+                <div id="map-tooltip" class="tooltip"></div>
+
+                <!-- Interactive SVG Map -->
+                <!-- 
+                     IMPORTANT: 
+                     1. This SVG is a placeholder. REPLACE everything below with your Figma SVG export.
+                     2. ENSURE your SVG elements for rooms have IDs matching the Lab.map_svg_id (e.g., id="lab_101").
+                -->
+                <svg viewBox="0 0 800 400" class="w-full h-auto bg-gray-50 border border-gray-200 rounded-lg" id="floor-plan">
+                    
+                    {% for lab in labs %}
+                    <!-- Django loop populates SVG elements based on your database -->
+                    <g id="{{ lab.map_svg_id }}" 
+                       data-slug="{{ lab.slug }}" 
+                       data-name="{{ lab.name }}" 
+                       data-status="{% if lab.is_active %}free{% else %}maintenance{% endif %}"
+                       class="lab-group"
+                       >
+                        <!-- Placeholder Rect. Replace this with your actual SVG geometry (path, rect, etc.) -->
+                        {% if lab.map_svg_id == 'lab_101' %}
+                            <rect x="50" y="50" width="200" height="150" class="lab-room status-maintenance" />
+                            <text x="150" y="130" text-anchor="middle" class="font-bold fill-white pointer-events-none">CHEM 101</text>
+                        {% elif lab.map_svg_id == 'lab_102' %}
+                            <rect x="300" y="50" width="200" height="150" class="lab-room status-free" />
+                            <text x="400" y="130" text-anchor="middle" class="font-bold fill-white pointer-events-none">PHYS 102</text>
+                        {% elif lab.map_svg_id == 'lab_103' %}
+                            <rect x="550" y="50" width="200" height="300" class="lab-room status-free" />
+                            <text x="650" y="200" text-anchor="middle" class="font-bold fill-white pointer-events-none">ROBOTICS</text>
+                        {% endif %}
+                    </g>
+                    {% endfor %}
+                    
+                    <!-- Example of a room without a corresponding Django object for map background -->
+                    <rect x="250" y="250" width="200" height="100" fill="#E5E7EB" />
+                    <text x="350" y="300" text-anchor="middle" class="fill-gray-500 text-xs pointer-events-none">Storage</text>
+
+                </svg>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const floorPlan = document.getElementById('floor-plan');
+            const tooltip = document.getElementById('map-tooltip');
+            
+            // 1. Fetch Real-time Status from the Reservations API
+            fetch('/reservations/api/status/')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    const busyIds = data.occupied_ids || []; 
+                    
+                    // Update all busy labs
+                    busyIds.forEach(id => {
+                        const el = document.getElementById(id);
+                        if(el) {
+                            const roomShape = el.querySelector('.lab-room');
+                            if (roomShape) {
+                                roomShape.classList.remove('status-free');
+                                roomShape.classList.add('status-busy');
+                                el.setAttribute('data-status', 'busy');
+                            }
+                        }
+                    });
+                    
+                    // 2. Add Interactions (Mouseover and Click)
+                    const rooms = document.querySelectorAll('.lab-group');
+                    const mapRect = floorPlan.getBoundingClientRect();
+
+                    rooms.forEach(room => {
+                        const roomShape = room.querySelector('.lab-room');
+                        if (!roomShape) return;
+
+                        // Mouse Enter/Move: Show Tooltip
+                        room.addEventListener('mouseenter', (e) => {
+                            const name = room.getAttribute('data-name');
+                            const status = room.getAttribute('data-status');
+                            
+                            tooltip.style.opacity = '1';
+                            tooltip.innerHTML = `
+                                <div class="font-bold">${name}</div>
+                                <div class="text-xs text-gray-300">Status: ${status.toUpperCase()}</div>
+                            `;
+                            
+                            // Position tooltip
+                            const mapContainerRect = floorPlan.getBoundingClientRect();
+                            tooltip.style.left = (e.clientX - mapContainerRect.left + 15) + 'px';
+                            tooltip.style.top = (e.clientY - mapContainerRect.top + 15) + 'px';
+                        });
+
+                        room.addEventListener('mousemove', (e) => {
+                            const mapContainerRect = floorPlan.getBoundingClientRect();
+                            tooltip.style.left = (e.clientX - mapContainerRect.left + 15) + 'px';
+                            tooltip.style.top = (e.clientY - mapContainerRect.top + 15) + 'px';
+                        });
+
+                        room.addEventListener('mouseleave', () => {
+                            tooltip.style.opacity = '0';
+                        });
+
+                        // Click: Navigate to Detail Page
+                        room.addEventListener('click', function() {
+                            const slug = this.getAttribute('data-slug');
+                            const status = this.getAttribute('data-status');
+                            
+                            if (status === 'free' || status === 'maintenance') {
+                                // Navigate to the 'labs' app detail view using the Django URL pattern
+                                window.location.href = `/labs/${slug}/`;
+                            } else if (status === 'busy') {
+                                console.log(`Lab ${slug} is currently busy.`);
+                                // Optional: Implement a modal message instead of console.log
+                            }
+                        });
+                    });
+
+                })
+                .catch(error => {
+                    console.error('Error fetching map status:', error);
+                    // Fallback visual feedback if API fails
+                });
+        });
+    </script>
+</body>
+</html>
