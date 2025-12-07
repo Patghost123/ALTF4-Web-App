@@ -1,4 +1,5 @@
-from django.shortcuts import redirect
+from django.shortcuts import render
 
 def home_redirect_view(request):
-    return redirect('labs:index')
+    # Instead of redirecting, render base.html
+    return render(request, 'base.html')
