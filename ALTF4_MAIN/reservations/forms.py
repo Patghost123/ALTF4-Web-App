@@ -56,9 +56,21 @@ class ReservationForm(forms.ModelForm):
         start_time = cleaned_data.get('start_time')
         duration = cleaned_data.get('duration')
         
-        # Weekend Validation
+        # 1. Weekend Validation
         if booking_date and booking_date.weekday() >= 5:
             raise forms.ValidationError("Laboratories are closed on weekends. Please choose a weekday (Monday - Friday).")
+
+        # 2. Past Date/Time Validation
+        if booking_date:
+            # Check if the date is in the past
+            if booking_date < date.today():
+                raise forms.ValidationError("You cannot book a date in the past.")
+            
+            # If the booking is for today, ensure the time hasn't passed yet
+            if booking_date == date.today() and start_time:
+                # We use datetime.now().time() to get the current system time
+                if start_time < datetime.now().time():
+                    raise forms.ValidationError("You cannot book a time slot that has already passed today.")
 
         if start_time and duration:
             duration_minutes = int(duration)
