@@ -1,11 +1,12 @@
 from django.urls import path
 from . import views
 
-# Add the app_name to support namespace lookups (e.g., 'reservations:timetable')
 app_name = 'reservations'
 
 urlpatterns = [
-    path('reserve/', views.make_reservation, name='make_reservation'),
+    path('reserve/<int:lab_id>/', views.make_reservation, name='make_reservation'),
     path('success/', views.reservation_success, name='success'),
     path('timetable/', views.timetable, name='timetable'),
+    # New API path for the calendar
+    path('api/events/', views.all_reservations_api, name='all_reservations_api'),
 ]
