@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-6 py-12">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Lab Timetable</h1>
+        
+        <form method="get" class="flex items-center gap-4">
+            <label for="lab" class="text-gray-700 font-medium">Filter by Lab:</label>
+            <select name="lab" id="lab" onchange="this.form.submit()" class="border-gray-300 rounded-md shadow-sm p-2 border">
+                <option value="">All Labs</option>
+                {% for lab in labs %}
+                    <option value="{{ lab.id }}" {% if selected_lab_id == lab.id %}selected{% endif %}>
+                        {{ lab.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-200">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-indigo-600 text-white">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Lab</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Time</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Booked By</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for res in reservations %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {{ res.date|date:"l, M d" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        <span class="font-bold text-indigo-600">{{ res.lab.name }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {{ res.start_time|time:"H:i" }} - {{ res.end_time|time:"H:i" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ res.user.username }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                            Booked
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+                        No upcoming bookings found. The labs are free!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="mt-6 text-right">
+        <a href="{% url 'reservations:book' %}" class="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow transition">
+            Make a Reservation
+        </a>
+    </div>
+</div>
+{% endblock %}
