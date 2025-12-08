@@ -1,70 +1,174 @@
-{% extends "base.html" %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Availability | STEM Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <style>
+        .fc { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.85rem; }
+        .fc-header-toolbar { margin-bottom: 1rem !important; flex-wrap: wrap; gap: 0.5rem; }
+        .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700; }
+        .fc-button-primary { background-color: white !important; color: #374151 !important; border-color: #e5e7eb !important; font-weight: 600 !important; padding: 0.35rem 0.75rem !important; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important; }
+        .fc-button-primary:hover { background-color: #f9fafb !important; color: #111827 !important; }
+        .fc-button-active { background-color: #eef2ff !important; color: #4f46e5 !important; border-color: #c7d2fe !important; }
+        .fc-timegrid-slot { height: 2.5rem !important; } 
+        .fc-event { border-radius: 4px; border: none; padding: 1px 3px; font-size: 0.75rem; font-weight: 500; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.15); }
+        .fc-theme-standard td, .fc-theme-standard th { border-color: #f3f4f6; }
+        .fc-day-today { background-color: #fafafe !important; }
+        .fc-day-sat, .fc-day-sun { background-color: #fff1f2 !important; }
+        .fc-scroller::-webkit-scrollbar { width: 6px; }
+        .fc-scroller::-webkit-scrollbar-thumb { background-color: #e5e7eb; border-radius: 99px; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
 
-{% block content %}
-<div class="max-w-6xl mx-auto px-6 py-12">
-    <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Lab Timetable</h1>
-        
-        <form method="get" class="flex items-center gap-4">
-            <label for="lab" class="text-gray-700 font-medium">Filter by Lab:</label>
-            <select name="lab" id="lab" onchange="this.form.submit()" class="border-gray-300 rounded-md shadow-sm p-2 border">
-                <option value="">All Labs</option>
-                {% for lab in labs %}
-                    <option value="{{ lab.id }}" {% if selected_lab_id == lab.id %}selected{% endif %}>
-                        {{ lab.name }}
-                    </option>
-                {% endfor %}
-            </select>
-        </form>
-    </div>
+    <nav class="bg-white border-b border-gray-200 px-4 md:px-6 py-3 shadow-sm z-20 sticky top-0">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <a href="/" class="font-bold text-xl text-indigo-600 flex items-center gap-2">
+                <span>STEM Hub</span>
+            </a>
+            <div class="flex items-center gap-4 text-sm font-medium">
+                <a href="{% url 'labs:index' %}" class="text-gray-500 hover:text-indigo-600 transition hidden sm:block">Map</a>
+                <div class="text-indigo-600 font-semibold">Calendar</div>
+            </div>
+        </div>
+    </nav>
 
-    <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-200">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-indigo-600 text-white">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Lab</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Time</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Booked By</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                {% for res in reservations %}
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {{ res.date|date:"l, M d" }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        <span class="font-bold text-indigo-600">{{ res.lab.name }}</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {{ res.start_time|time:"H:i" }} - {{ res.end_time|time:"H:i" }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {{ res.user.username }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                            Booked
-                        </span>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="px-6 py-10 text-center text-gray-500">
-                        No upcoming bookings found. The labs are free!
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    
-    <div class="mt-6 text-right">
-        <a href="{% url 'reservations:book' %}" class="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow transition">
-            Make a Reservation
-        </a>
-    </div>
-</div>
-{% endblock %}
+    <main class="flex-grow">
+        <div class="max-w-5xl mx-auto px-4 py-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Lab Schedule</h1>
+                    <p class="text-sm text-gray-500 mt-1">Select a lab below to enable booking.</p>
+                </div>
+                
+                <form method="get" class="w-full sm:w-auto bg-white px-3 py-2 rounded-xl shadow-sm border border-gray-200 flex items-center gap-2">
+                    <label for="lab" class="text-xs font-bold text-gray-500 uppercase">Filter:</label>
+                    <div class="relative flex-grow sm:flex-grow-0">
+                        <select name="lab" id="lab" onchange="this.form.submit()" 
+                                class="w-full sm:w-48 appearance-none bg-transparent font-medium text-sm text-gray-800 focus:outline-none cursor-pointer pr-6">
+                            <option value="">All Labs (View Only)</option>
+                            {% for lab in labs %}
+                                <option value="{{ lab.id }}" data-slug="{{ lab.slug }}" {% if selected_lab_id == lab.id %}selected{% endif %}>
+                                    {{ lab.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center text-gray-400">
+                            <svg class="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50 border-b border-gray-100 px-4 py-2 flex justify-between items-center text-xs">
+                     <div class="flex gap-4">
+                         <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span><span class="text-gray-600 font-medium">Booked</span></div>
+                         <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-white border border-gray-300"></span><span class="text-gray-500">Available</span></div>
+                         <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-50 border border-rose-100"></span><span class="text-rose-400 font-medium">Closed</span></div>
+                     </div>
+                     <span class="text-gray-400 font-mono">{% now "P" %}</span>
+                </div>
+                <div class="p-2 md:p-4">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-center sm:justify-end">
+                <button onclick="handleManualBooking()" 
+                   class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 px-6 rounded-full shadow-md transition hover:-translate-y-0.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    <span>New Reservation</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+<script>
+    // Store the ID for the currently selected lab
+    var selectedLabId = "{{ selected_lab_id|default:'' }}";
+
+    function handleManualBooking() {
+        if (!selectedLabId) {
+            alert("Please select a specific Lab from the filter menu above to make a reservation.");
+        } else {
+            // New URL Pattern: /reservations/reserve/<id>/
+            window.location.href = `/reservations/reserve/${selectedLabId}/`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var eventUrl = "{% url 'reservations:all_reservations_api' %}";
+        if (selectedLabId) {
+            eventUrl += "?lab_id=" + selectedLabId;
+        }
+
+        var initialViewType = window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek';
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: initialViewType,
+            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
+            slotMinTime: '08:00:00',
+            slotMaxTime: '20:00:00',
+            allDaySlot: false,       
+            slotDuration: '00:30:00', 
+            expandRows: true,         
+            height: 'auto',           
+            events: eventUrl,
+            eventColor: '#4f46e5', 
+            eventTextColor: '#ffffff',
+            nowIndicator: true,
+            navLinks: true, 
+            
+            dateClick: function(info) {
+                let dateObj = info.date;
+                let dayOfWeek = dateObj.getDay();
+
+                if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    alert("The labs are closed on weekends.");
+                    return;
+                }
+
+                // CHECK: Is a lab selected?
+                if (!selectedLabId) {
+                    alert("You are viewing 'All Labs'. Please select a specific Lab from the filter menu to book this slot.");
+                    return;
+                }
+
+                // Construct specific URL using Lab ID
+                let year = dateObj.getFullYear();
+                let month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                let day = String(dateObj.getDate()).padStart(2, '0');
+                let dateStr = `${year}-${month}-${day}`;
+                
+                let hours = String(dateObj.getHours()).padStart(2, '0');
+                let minutes = String(dateObj.getMinutes()).padStart(2, '0');
+                let timeStr = `${hours}:${minutes}`;
+                
+                // URL Pattern: /reservations/reserve/<id>/
+                let bookingUrl = `/reservations/reserve/${selectedLabId}/?date=${dateStr}&start_time=${timeStr}`;
+                window.location.href = bookingUrl;
+            },
+
+            eventClick: function(info) {
+                alert('Booked by: ' + info.event.title);
+            },
+            
+            windowResize: function(view) {
+                if (window.innerWidth < 768) {
+                    calendar.changeView('timeGridDay');
+                } else {
+                    calendar.changeView('timeGridWeek');
+                }
+            }
+        });
+        calendar.render();
+    });
+</script>
+</body>
+</html>

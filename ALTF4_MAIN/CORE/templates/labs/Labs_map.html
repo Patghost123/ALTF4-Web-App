@@ -7,53 +7,70 @@
     <title>STEM Lab Hub | Facility Map</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Custom styles for map visualization */
-        .lab-room {
-            transition: all 0.3s ease;
-            cursor: pointer;
-            fill: #9CA3AF; /* Default grey color */
-        }
-        .lab-room:hover {
-            opacity: 0.8;
-            stroke: #333;
-            stroke-width: 2px;
-        }
-        /* Status Overrides */
-        .status-free { fill: #10B981 !important; } /* Tailwind Green-500 */
-        .status-busy { fill: #EF4444 !important; pointer-events: none; } /* Tailwind Red-500 */
-        .status-maintenance { fill: #F59E0B !important; } /* Tailwind Amber-500 */
+        /* --- MAP INTERACTIVITY STYLES --- */
         
-        /* Removed fixed .map-wrapper max-width for responsiveness. 
-           Sizing is now managed by the surrounding Tailwind classes (max-w-6xl). 
-           We use w-full on the SVG element to ensure it fills the available space. 
+        /* TARGETING BY ID ATTRIBUTE:
+           Targets any element whose ID starts with "stem_lab_" to apply hover effects.
         */
+        [id^="stem_lab_"] {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            fill: #D9D9D9; /* Default color from your SVG */
+        }
 
+        /* REMOVED HOVER EFFECT AS REQUESTED */
+        /* [id^="stem_lab_"]:hover { ... } */
+
+        /* Status Colors (Applied via JS classes) */
+        .status-free { fill: #10B981 !important; } /* Green */
+        .status-busy { fill: #EF4444 !important; pointer-events: none; } /* Red */
+        .status-maintenance { fill: #F59E0B !important; } /* Amber */
+        
+        /* Tooltip */
         .tooltip {
             position: absolute;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.9);
             color: white;
-            padding: 8px 12px;
+            padding: 4px 8px; /* Reduced padding slightly for a tighter look */
             border-radius: 6px;
             font-size: 0.875rem;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: opacity 0.1s; /* Faster transition */
             z-index: 50;
             white-space: nowrap;
         }
         
         /* Ensure the included SVG scales correctly */
         #floor-plan {
-            width: 100%; /* Make the SVG fill its container */
-            height: auto; /* Maintain aspect ratio */
-            background-color: #f9fafb; /* Light background for the map area */
+            width: 100%;
+            height: auto;
+            background-color: #f9fafb;
             border-radius: 0.5rem;
+        }
+
+        /* SIDEBAR STYLES */
+        #lab-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 320px;
+            z-index: 100;
+            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 768px) {
+            #lab-sidebar {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans">
 
-    <!-- Navigation Placeholder -->
+    <!-- Navigation -->
     <nav class="bg-white border-b border-gray-200 px-6 py-4 mb-8 shadow-md">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <a href="{% url 'labs:index' %}" class="font-bold text-2xl text-indigo-600">STEM Hub</a>
@@ -74,120 +91,148 @@
             
             <!-- Legend -->
             <div class="flex justify-center gap-6 mb-6 text-sm font-medium">
-                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-green-500"></div> Available (Click to Book)</div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div> Occupied (Busy)</div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-green-500"></div> Available</div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div> Occupied</div>
                 <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-amber-500"></div> Maintenance</div>
             </div>
 
-            <!-- The wrapper must be full width for the SVG to expand -->
+            <!-- Map Container -->
             <div class="w-full relative"> 
-                <!-- Tooltip Element -->
                 <div id="map-tooltip" class="tooltip"></div>
 
-                <!-- 
-                    The included SVG file (STEM_labs.svg) MUST have id="floor-plan" 
-                    on its root <svg> tag. 
-                -->
+                <!-- SVG Inclusion -->
+                <!-- Ensure your file is named exactly STEM_labs.svg in the templates/labs/ folder -->
                 {% include 'labs/STEM_labs.svg' %}
-                
-                <!-- 
-                    The Django loop that was here is removed, as the attributes 
-                    (id, data-slug, data-name) must be hardcoded into the shapes 
-                    INSIDE the STEM_labs.svg file itself. 
-                -->
             </div>
         </div>
     </main>
 
+    <!-- LAB DETAIL SIDEBAR (Hidden by default) -->
+    <div id="lab-sidebar" class="bg-white p-6 flex flex-col justify-between" style="display: none;">
+        <div>
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="sidebar-title" class="text-xl font-bold text-gray-900">Lab Details</h3>
+                <button onclick="closeSidebar()" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+            </div>
+            
+            <div id="sidebar-content" class="space-y-4">
+                <p>Click on a lab on the map to see its status.</p>
+            </div>
+        </div>
+
+        <!-- Action Area -->
+        <div class="py-4 border-t border-gray-100 mt-4">
+            <a id="reservation-button" href="#" 
+               class="hidden w-full py-3 text-center bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition shadow-md">
+                View Lab & Make Reservation
+            </a>
+            <p id="reservation-message" class="text-center text-sm text-red-500 hidden">
+                Lab is currently occupied.
+            </p>
+        </div>
+    </div>
+
     <script>
-        // Use window.onload for greater certainty that the SVG elements are present
+        // 1. DATA MAPPING
+        // These Keys match the IDs in your SVG file (stem_lab_1, stem_lab_2...)
+        const LAB_DATA = {
+            'stem_lab_1': { name: 'STEM Lab 1 (CHEM-A)', slug: 'chem-lab-a', capacity: 24, description: 'Chemical analysis lab with specialized ventilation.' },
+            'stem_lab_2': { name: 'STEM Lab 2 (PHYS-B)', slug: 'phys-workshop-b', capacity: 18, description: 'Experimental physics dedicated to optics.' },
+            'stem_lab_3': { name: 'STEM Lab 3 (ROBO-C)', slug: 'robo-control-c', capacity: 20, description: 'Robotics and embedded systems workshop.' },
+            'stem_lab_4': { name: 'STEM Lab 4 (HPC-D)', slug: 'hpc-sim-d', capacity: 35, description: 'High-Performance Computing cluster.' },
+            'stem_lab_5': { name: 'STEM Lab 5 (BIO-E)', slug: 'bio-large-e', capacity: 40, description: 'Large capacity wet lab for biology.' },
+        };
+
+        // 2. SIDEBAR LOGIC
+        function openSidebar(svgId) {
+            const sidebar = document.getElementById('lab-sidebar');
+            const title = document.getElementById('sidebar-title');
+            const content = document.getElementById('sidebar-content');
+            const button = document.getElementById('reservation-button');
+            const message = document.getElementById('reservation-message');
+            
+            const data = LAB_DATA[svgId];
+
+            if (!data) {
+                console.warn("No data found for ID:", svgId);
+                return; 
+            }
+
+            // Populate Content
+            title.innerText = data.name;
+            content.innerHTML = `
+                <div class="space-y-3">
+                    <div class="flex justify-between border-b pb-2">
+                        <span class="font-semibold text-gray-600">Capacity:</span>
+                        <span>${data.capacity} Students</span>
+                    </div>
+                    <p class="text-sm text-gray-600 leading-relaxed">${data.description}</p>
+                </div>
+            `;
+
+            // Configure Button
+            button.classList.remove('hidden');
+            button.href = `/labs/${data.slug}/`; // Direct link to detail page
+            message.classList.add('hidden');
+
+            // Show Sidebar
+            sidebar.style.display = 'block';
+        }
+
+        function closeSidebar() {
+            document.getElementById('lab-sidebar').style.display = 'none';
+        }
+
+        // 3. MAP INITIALIZATION
         window.onload = function() {
             const floorPlan = document.getElementById('floor-plan');
             const tooltip = document.getElementById('map-tooltip');
-            
-            // Safety check for critical elements
+
             if (!floorPlan) {
-                console.error("Critical Error: The SVG map with id='floor-plan' was not found.");
+                console.error("SVG Map not found! Check if the SVG inclusion is working.");
                 return;
             }
 
-            // 1. Fetch Real-time Status from the Reservations API
-            fetch('/reservations/api/status/')
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.json();
-                })
-                .then(data => {
-                    const busyIds = data.occupied_ids || []; 
-                    
-                    // 2. Add Interactions (Mouseover and Click)
-                    // Select all groups that represent a lab
-                    const rooms = document.querySelectorAll('.lab-group');
-                    const mapContainerRect = floorPlan.getBoundingClientRect(); // Get map dimensions once
+            // --- SELECTOR LOGIC ---
+            // This selector finds ALL elements where the ID starts with "stem_lab_"
+            const labRooms = document.querySelectorAll('[id^="stem_lab_"]');
+            
+            console.log(`Found ${labRooms.length} interactive labs.`);
 
-                    rooms.forEach(room => {
-                        const svgId = room.id;
-                        const roomShape = room.querySelector('.lab-room');
-                        if (!roomShape) return;
+            // Attach Listeners to each found room
+            labRooms.forEach(room => {
+                const roomId = room.id;
 
-                        // --- Dynamic Status Application ---
-                        let currentStatus = room.getAttribute('data-status'); // Start with DB status (free/maintenance)
-
-                        if (busyIds.includes(svgId)) {
-                            currentStatus = 'busy'; // Override if API reports busy
-                        }
-
-                        // Apply the final color class
-                        roomShape.classList.remove('status-free', 'status-maintenance');
-                        roomShape.classList.add(`status-${currentStatus}`);
-                        room.setAttribute('data-status', currentStatus);
-
-
-                        // --- Mouse Enter/Move: Show Tooltip ---
-                        room.addEventListener('mouseenter', (e) => {
-                            const name = room.getAttribute('data-name');
-                            const status = room.getAttribute('data-status');
-                            
-                            tooltip.style.opacity = '1';
-                            tooltip.innerHTML = `
-                                <div class="font-bold">${name}</div>
-                                <div class="text-xs text-gray-300">Status: ${status.toUpperCase()}</div>
-                            `;
-                            
-                            // Position tooltip
-                            tooltip.style.left = (e.clientX - mapContainerRect.left + 15) + 'px';
-                            tooltip.style.top = (e.clientY - mapContainerRect.top + 15) + 'px';
-                        });
-
-                        room.addEventListener('mousemove', (e) => {
-                            // Update position on move
-                            tooltip.style.left = (e.clientX - mapContainerRect.left + 15) + 'px';
-                            tooltip.style.top = (e.clientY - mapContainerRect.top + 15) + 'px';
-                        });
-
-                        room.addEventListener('mouseleave', () => {
-                            tooltip.style.opacity = '0';
-                        });
-
-                        // --- Click: Navigate to Detail Page ---
-                        room.addEventListener('click', function() {
-                            const slug = this.getAttribute('data-slug');
-                            const status = this.getAttribute('data-status');
-                            
-                            if (status === 'free' || status === 'maintenance') {
-                                // Navigate to the 'labs' app detail view
-                                window.location.href = `/labs/${slug}/`;
-                            } else if (status === 'busy') {
-                                console.log(`Lab ${slug} is currently busy. Cannot book.`);
-                                // In a real app, you would show a non-alert message here
-                            }
-                        });
-                    });
-
-                })
-                .catch(error => {
-                    console.error('Error fetching map status:', error);
+                // A. MOUSE ENTER (Tooltip)
+                room.addEventListener('mouseenter', (e) => {
+                    const data = LAB_DATA[roomId];
+                    if(data) {
+                        tooltip.style.opacity = '1';
+                        tooltip.innerHTML = `<div class="font-bold">${data.name}</div>`;
+                        // Positioning closer (5px instead of 15px)
+                        tooltip.style.left = (e.pageX + 5) + 'px';
+                        tooltip.style.top = (e.pageY + 5) + 'px';
+                    }
                 });
+
+                // B. MOUSE MOVE (Tooltip Follow)
+                room.addEventListener('mousemove', (e) => {
+                    // Update position closer to cursor (5px)
+                    tooltip.style.left = (e.pageX + 5) + 'px';
+                    tooltip.style.top = (e.pageY + 5) + 'px';
+                });
+
+                // C. MOUSE LEAVE (Hide Tooltip)
+                room.addEventListener('mouseleave', () => {
+                    tooltip.style.opacity = '0';
+                });
+
+                // D. CLICK (Open Sidebar)
+                room.addEventListener('click', () => {
+                    console.log(`Clicked Lab ID: ${roomId}`);
+                    openSidebar(roomId);
+                });
+            });
         };
     </script>
 </body>
