@@ -8,18 +8,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* --- MAP INTERACTIVITY STYLES --- */
-        
-        /* TARGETING BY ID ATTRIBUTE:
-           Targets any element whose ID starts with "stem_lab_" to apply hover effects.
-        */
         [id^="stem_lab_"] {
             cursor: pointer;
             transition: all 0.3s ease;
             fill: #D9D9D9; /* Default color from your SVG */
         }
-
-        /* REMOVED HOVER EFFECT AS REQUESTED */
-        /* [id^="stem_lab_"]:hover { ... } */
 
         /* Status Colors (Applied via JS classes) */
         .status-free { fill: #10B981 !important; } /* Green */
@@ -37,7 +30,6 @@
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.1s; /* Faster transition */
-            z-index: 50;
             white-space: nowrap;
         }
         
@@ -83,25 +75,13 @@
 
     <main class="max-w-6xl mx-auto px-6 pb-12">
         <div class="text-center mb-10">
-            <h1 class="text-3xl font-bold text-gray-900">Live Facility Map</h1>
-            <p class="text-gray-600 mt-2">Real-time status of all active labs and workshops.</p>
+            <h1 class="text-3xl font-bold text-gray-900">Facility Map</h1>
+            <p class="text-gray-600 mt-2">Map of all labs and workshops.</p>
         </div>
 
         <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
-            
-            <!-- Legend -->
-            <div class="flex justify-center gap-6 mb-6 text-sm font-medium">
-                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-green-500"></div> Available</div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div> Occupied</div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-amber-500"></div> Maintenance</div>
-            </div>
-
-            <!-- Map Container -->
             <div class="w-full relative"> 
                 <div id="map-tooltip" class="tooltip"></div>
-
-                <!-- SVG Inclusion -->
-                <!-- Ensure your file is named exactly STEM_labs.svg in the templates/labs/ folder -->
                 {% include 'labs/STEM_labs.svg' %}
             </div>
         </div>
@@ -123,7 +103,7 @@
         <!-- Action Area -->
         <div class="py-4 border-t border-gray-100 mt-4">
             <a id="reservation-button" href="#" 
-               class="hidden w-full py-3 text-center bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition shadow-md">
+               class="hidden w-full py-3 px-4 text-center bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition shadow-md">
                 View Lab & Make Reservation
             </a>
             <p id="reservation-message" class="text-center text-sm text-red-500 hidden">
@@ -134,7 +114,6 @@
 
     <script>
         // 1. DATA MAPPING
-        // These Keys match the IDs in your SVG file (stem_lab_1, stem_lab_2...)
         const LAB_DATA = {
             'stem_lab_1': { name: 'STEM Lab 1 (CHEM-A)', slug: 'chem-lab-a', capacity: 24, description: 'Chemical analysis lab with specialized ventilation.' },
             'stem_lab_2': { name: 'STEM Lab 2 (PHYS-B)', slug: 'phys-workshop-b', capacity: 18, description: 'Experimental physics dedicated to optics.' },
@@ -172,7 +151,7 @@
 
             // Configure Button
             button.classList.remove('hidden');
-            button.href = `/labs/${data.slug}/`; // Direct link to detail page
+            button.href = `/labs/${data.slug}/`; 
             message.classList.add('hidden');
 
             // Show Sidebar
@@ -216,15 +195,32 @@
                 });
 
                 // B. MOUSE MOVE (Tooltip Follow)
-                room.addEventListener('mousemove', (e) => {
-                    // Update position closer to cursor (5px)
-                    tooltip.style.left = (e.pageX + 5) + 'px';
-                    tooltip.style.top = (e.pageY + 5) + 'px';
+                    room.addEventListener('mousemove', (e) => {
+                    const offset = -100; 
+
+                    const tooltipWidth = tooltip.offsetWidth;
+                    const tooltipHeight = tooltip.offsetHeight;
+                    
+                    let left = e.pageX + offset;
+                    let top = e.pageY + offset;
+
+                    if (left + tooltipWidth > window.innerWidth + window.scrollX) {
+                        left = e.pageX - tooltipWidth - offset;
+                    }
+
+                    if (top + tooltipHeight > window.innerHeight + window.scrollY) {
+                        top = e.pageY - tooltipHeight - offset;
+                    }
+
+                    tooltip.style.left = (left + -100) + 'px';
+                    tooltip.style.top = (top + -150) + 'px';
                 });
 
                 // C. MOUSE LEAVE (Hide Tooltip)
                 room.addEventListener('mouseleave', () => {
                     tooltip.style.opacity = '0';
+                    tooltip.style.left = '-9999px';
+                    tooltip.style.top = '-9999px';
                 });
 
                 // D. CLICK (Open Sidebar)
