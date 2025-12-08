@@ -278,10 +278,16 @@
   <header>
     <h1>STEM Hub</h1>
     <nav>
-      <a href="#">Home</a>
-      <a href="http://127.0.0.1:8000/labs/">Labs</a>
-      <a href="#">Reservations</a>
+      <a href="/">Home</a>
+      <a href="{% url 'labs:index' %}">Labs</a>
+
+      <a href="{% url 'reservations:timetable' %}">Calendar</a>        
+      <a href="{% url 'reservations:my_reservations' %}">My Reservations</a>    
+      {% if user.is_staff %}
+        <a href="{% url 'reservations:dashboard' %}" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Admin Panel</a>
+      {% endif %}
       <a href="/auth/" class="logout-btn">Log Out</a>
+      <a href
     </nav>
   </header>
 

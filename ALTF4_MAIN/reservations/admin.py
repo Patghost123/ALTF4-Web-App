@@ -10,7 +10,8 @@ def reject_reservations(modeladmin, request, queryset):
     queryset.update(status='REJECTED')
 
 class ReservationAdmin(admin.ModelAdmin):
-    list_display = ('lab', 'user', 'date', 'start_time', 'end_time', 'status')
+    # Added 'purpose' to list_display
+    list_display = ('lab', 'user', 'date', 'start_time', 'end_time', 'purpose', 'status')
     list_filter = ('status', 'date', 'lab')
     actions = [approve_reservations, reject_reservations]
 

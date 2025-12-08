@@ -1,0 +1,272 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | STEM Hub</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* --- Base Styles Matching your Site Theme --- */
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #f4f6f9;
+            color: #1f2937;
+        }
+
+        /* Glassmorphism Header */
+        header { 
+            background: rgba(255, 255, 255, 0.95); 
+            padding: 1rem 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+        }
+
+        header h1 { 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            color: #2563eb; 
+            letter-spacing: -0.5px;
+        }
+
+        nav { display: flex; gap: 2rem; align-items: center; }
+        
+        nav a { 
+            font-weight: 500; 
+            font-size: 0.95rem; 
+            color: #64748b; 
+            transition: color 0.3s; 
+        }
+        
+        nav a:hover { color: #2563eb; }
+
+        .logout-btn {
+            padding: 0.5rem 1.2rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #eff6ff;
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header / Navigation -->
+    <header>
+        <div class="flex items-center gap-2">
+            <h1>STEM Hub</h1>
+            <span class="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded ml-2 uppercase tracking-wider">Admin Area</span>
+        </div>
+        <nav>
+            <a href="/">Home</a>
+            <a href="{% url 'labs:index' %}">Labs</a>
+            <a href="{% url 'reservations:timetable' %}">Calendar</a>
+            <a href="/auth/" class="logout-btn">Log Out</a>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <!-- Dashboard Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900">Reservation Requests</h2>
+                <p class="mt-1 text-sm text-gray-500">Review and manage student access to facilities.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-100 text-indigo-800 text-sm font-bold px-4 py-2 rounded-full shadow-sm">
+                    {{ pending_reservations.count }} Pending
+                </div>
+                <div class="bg-green-100 text-green-800 text-sm font-bold px-4 py-2 rounded-full shadow-sm">
+                    {{ approved_reservations.count }} Approved
+                </div>
+            </div>
+        </div>
+
+        <!-- PENDING RESERVATIONS LIST -->
+        <div class="bg-white shadow-lg overflow-hidden rounded-xl border border-gray-200 mb-12">
+            <div class="px-6 py-5 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg leading-6 font-bold text-gray-900 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Awaiting Approval
+                </h3>
+            </div>
+            
+            {% if pending_reservations %}
+            <ul class="divide-y divide-gray-100">
+                {% for res in pending_reservations %}
+                <li class="p-6 hover:bg-gray-50 transition duration-150 ease-in-out">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                        
+                        <!-- Request Details -->
+                        <div class="flex-grow space-y-2">
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <h4 class="text-xl font-bold text-gray-900">{{ res.lab.name }}</h4>
+                                <span class="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                                    {{ res.date|date:"M d, Y" }}
+                                </span>
+                                <span class="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200 font-mono">
+                                    {{ res.start_time|time:"H:i" }} - {{ res.end_time|time:"H:i" }}
+                                </span>
+                            </div>
+                            
+                            <div class="flex items-center gap-2 text-sm text-gray-600">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                <span class="font-medium">{{ res.user.username }}</span>
+                                <span class="text-gray-400">|</span>
+                                <span class="text-gray-500">{{ res.user.email }}</span>
+                            </div>
+
+                            <div class="mt-2 text-sm bg-yellow-50 text-yellow-900 p-3 rounded-lg border border-yellow-100 inline-block w-full lg:w-auto lg:min-w-[400px]">
+                                <span class="font-bold text-xs uppercase tracking-wide text-yellow-600 block mb-1">Purpose of Booking</span>
+                                {{ res.purpose }}
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex items-center gap-3 w-full lg:w-auto">
+                            <!-- Approve Form -->
+                            <form method="post" class="w-1/2 lg:w-auto" onsubmit="return confirm('Confirm approval for {{ res.user.username }}?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="reservation_id" value="{{ res.id }}">
+                                <input type="hidden" name="action" value="approve">
+                                <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2.5 border border-transparent text-sm font-bold rounded-lg text-white bg-green-600 hover:bg-green-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition">
+                                    <svg class="mr-2 -ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    Approve
+                                </button>
+                            </form>
+
+                            <!-- Reject Button -->
+                            <button onclick="openRejectModal('{{ res.id }}', '{{ res.user.username }}')" class="w-1/2 lg:w-auto inline-flex justify-center items-center px-4 py-2.5 border border-transparent text-sm font-bold rounded-lg text-white bg-red-600 hover:bg-red-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition">
+                                <svg class="mr-2 -ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                Reject
+                            </button>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="py-16 text-center">
+                <div class="bg-gray-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                    <svg class="h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900">All caught up!</h3>
+                <p class="text-gray-500 mt-1">There are no pending reservation requests at this moment.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- RECENTLY APPROVED -->
+        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            Recently Approved History
+        </h3>
+        <div class="bg-white shadow-sm overflow-hidden rounded-xl border border-gray-200">
+            <ul class="divide-y divide-gray-100">
+                {% for res in approved_reservations %}
+                <li class="px-6 py-4 hover:bg-gray-50 transition flex justify-between items-center">
+                    <div>
+                        <span class="font-bold text-gray-900">{{ res.lab.name }}</span>
+                        <div class="text-xs text-gray-500 mt-1">
+                            {{ res.date }} • {{ res.start_time|time:"H:i" }} to {{ res.end_time|time:"H:i" }}
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-sm font-medium text-gray-900">{{ res.user.username }}</div>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                            Active
+                        </span>
+                    </div>
+                </li>
+                {% empty %}
+                <li class="px-6 py-4 text-sm text-gray-500 text-center">No approved history yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+    </main>
+
+    <!-- REJECTION MODAL -->
+    <div id="rejectModal" class="fixed z-50 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            
+            <!-- Background Overlay -->
+            <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="closeRejectModal()"></div>
+
+            <!-- Centering Trick -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <!-- Modal Panel -->
+            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">Reject Reservation</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-500 mb-4">
+                                        You are about to reject <span id="modalUser" class="font-bold text-gray-800"></span>'s request. 
+                                        Please provide a reason below to notify the student.
+                                    </p>
+                                    <label for="rejection_reason" class="block text-xs font-bold text-gray-700 uppercase mb-1">Reason for Rejection</label>
+                                    <textarea name="rejection_reason" id="rejection_reason" required rows="3" 
+                                        class="shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-lg border p-2.5 bg-gray-50" 
+                                        placeholder="e.g., Lab maintenance scheduled, Incorrect purpose..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" name="reservation_id" id="modalReservationId">
+                    <input type="hidden" name="action" value="reject">
+
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
+                        <button type="submit" class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-bold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition">
+                            Confirm Rejection
+                        </button>
+                        <button type="button" onclick="closeRejectModal()" class="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openRejectModal(id, username) {
+            document.getElementById('rejectModal').classList.remove('hidden');
+            document.getElementById('modalReservationId').value = id;
+            document.getElementById('modalUser').innerText = username;
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

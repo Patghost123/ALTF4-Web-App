@@ -1,0 +1,106 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard | STEM Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Simple Admin Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-indigo-600 tracking-tight">STEM Analytics</h1>
+            <a href="/" class="text-sm font-medium text-slate-500 hover:text-indigo-600 transition">Return to Home</a>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <!-- Key Metrics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <p class="text-sm font-medium text-slate-500 uppercase">Total Reservations</p>
+                <p class="text-3xl font-bold text-indigo-600 mt-2">{{ total_reservations }}</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <p class="text-sm font-medium text-slate-500 uppercase">Active Labs</p>
+                <p class="text-3xl font-bold text-green-600 mt-2">{{ total_labs }}</p>
+            </div>
+            <!-- Placeholder for future metric -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <p class="text-sm font-medium text-slate-500 uppercase">Avg. Bookings / User</p>
+                <p class="text-3xl font-bold text-amber-500 mt-2">-</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            
+            <!-- LAB POPULARITY TABLE -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                    <h3 class="font-bold text-lg text-slate-800">Lab Usage Stats</h3>
+                </div>
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-semibold">
+                        <tr>
+                            <th class="px-6 py-3">Lab Name</th>
+                            <th class="px-6 py-3 text-right">Total Bookings</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for lab in lab_stats %}
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-6 py-4 font-medium">{{ lab.lab__name }}</td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="bg-indigo-100 text-indigo-800 py-1 px-3 rounded-full text-xs font-bold">
+                                    {{ lab.total_bookings }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TOP USERS TABLE -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                    <h3 class="font-bold text-lg text-slate-800">Most Active Users</h3>
+                </div>
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-semibold">
+                        <tr>
+                            <th class="px-6 py-3">User</th>
+                            <th class="px-6 py-3 text-right">Bookings Made</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for user in user_stats %}
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-6 py-4">
+                                <div class="font-medium text-slate-900">{{ user.user__username }}</div>
+                                <div class="text-xs text-slate-400">{{ user.user__email }}</div>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="bg-green-100 text-green-800 py-1 px-3 rounded-full text-xs font-bold">
+                                    {{ user.total_bookings }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>
