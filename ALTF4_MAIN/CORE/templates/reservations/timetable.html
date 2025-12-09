@@ -15,7 +15,7 @@
         .fc-button-primary:hover { background-color: #f9fafb !important; color: #111827 !important; }
         .fc-button-active { background-color: #eef2ff !important; color: #4f46e5 !important; border-color: #c7d2fe !important; }
         .fc-timegrid-slot { height: 2.5rem !important; } 
-        .fc-event { border-radius: 4px; border: none; padding: 1px 3px; font-size: 0.75rem; font-weight: 500; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.15); }
+        .fc-event { border-radius: 4px; border: none; padding: 1px 3px; font-size: 0.75rem; font-weight: 500; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
         .fc-theme-standard td, .fc-theme-standard th { border-color: #f3f4f6; }
         .fc-day-today { background-color: #fafafe !important; }
         .fc-day-sat, .fc-day-sun { background-color: #fff1f2 !important; }
@@ -67,9 +67,21 @@
             <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                 <div class="bg-gray-50 border-b border-gray-100 px-4 py-2 flex justify-between items-center text-xs">
                      <div class="flex gap-4">
-                         <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span><span class="text-gray-600 font-medium">Booked</span></div>
-                         <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-white border border-gray-300"></span><span class="text-gray-500">Available</span></div>
-                         <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-50 border border-rose-100"></span><span class="text-rose-400 font-medium">Closed</span></div>
+                         <!-- Confirmed: Green -->
+                         <div class="flex items-center gap-1.5">
+                             <span class="w-2.5 h-2.5 rounded-full bg-green-600"></span>
+                             <span class="text-gray-600 font-medium">Booked</span>
+                         </div>
+                         <!-- Pending: Orange/Amber -->
+                         <div class="flex items-center gap-1.5">
+                             <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                             <span class="text-gray-600 font-medium">Pending</span>
+                         </div>
+                         <!-- Available: White -->
+                         <div class="flex items-center gap-1.5">
+                             <span class="w-2.5 h-2.5 rounded-full bg-white border border-gray-300"></span>
+                             <span class="text-gray-500">Available</span>
+                         </div>
                      </div>
                      <span class="text-gray-400 font-mono">{% now "P" %}</span>
                 </div>

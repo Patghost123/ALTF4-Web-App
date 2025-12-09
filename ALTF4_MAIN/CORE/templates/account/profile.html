@@ -1,0 +1,137 @@
+
+{% block content %}
+
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        height: 200px;
+        border-radius: 15px 15px 0 0;
+        position: relative;
+    }
+    
+    .profile-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+    .profile-card:hover {
+        transform: translateY(-5px); /* Subtle lift effect */
+    }
+
+    .profile-img-container {
+        position: relative;
+        margin-top: -75px; /* Pulls the image up into the banner */
+        text-align: center;
+    }
+
+    .profile-img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border: 5px solid white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        transition: transform 0.3s;
+    }
+
+    .profile-img:hover {
+        transform: scale(1.05) rotate(2deg); /* Fun interactive spin */
+    }
+
+    .info-badge {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 5px solid #764ba2;
+        transition: background 0.3s;
+    }
+
+    .info-badge:hover {
+        background-color: #e9ecef;
+    }
+
+    .btn-edit {
+        border-radius: 20px;
+        padding: 8px 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+</style>
+
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card profile-card">
+                
+                <div class="profile-header"></div>
+
+                <div class="card-body pt-0">
+                    <div class="profile-img-container">
+                        <img src="{{ user.profile.profile_pic.url }}" class="rounded-circle profile-img" alt="Profile">
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <h2 class="font-weight-bold">{{ user.username }}</h2>
+                        <p class="text-muted">{{ user.email }}</p>
+                        
+                        <a href="#" class="btn btn-outline-primary btn-edit mt-2">
+                            <i class="fas fa-pen"></i> Edit Profile
+                        </a>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="row mt-4">
+                        <div class="col-md-4">
+                            <div class="info-badge">
+                                <small class="text-muted text-uppercase font-weight-bold">Course</small>
+                                <h5 class="mb-0 text-primary mt-1">
+                                    {% if user.profile.course %}
+                                        {{ user.profile.course }}
+                                    {% else %}
+                                        <span class="text-muted">Not set</span>
+                                    {% endif %}
+                                </h5>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="info-badge" style="border-left-color: #667eea;">
+                                <small class="text-muted text-uppercase font-weight-bold">Year of Study</small>
+                                <h5 class="mb-0 text-primary mt-1">Year {{ user.profile.year_of_study }}</h5>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="info-badge" style="border-left-color: #ff6b6b;">
+                                <small class="text-muted text-uppercase font-weight-bold">Interests</small>
+                                <h5 class="mb-0 text-primary mt-1">
+                                    {% if user.profile.area_of_interest %}
+                                        {{ user.profile.area_of_interest }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-12 text-center">
+                            <p class="text-muted font-italic">
+                                "Passionate student at MMU." 
+                                </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
