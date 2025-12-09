@@ -76,7 +76,7 @@
         <!-- Equipment Inventory Section -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <!-- Left Column: Equipment List -->
+            <!-- Left Column: Equipment List (No change here) -->
             <div class="lg:col-span-2">
                 <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
@@ -107,7 +107,7 @@
                                             </span>
                                         {% else %}
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                Unavailable/Broken
+                                                Broken/Unavailable
                                             </span>
                                         {% endif %}
                                     </td>
@@ -126,19 +126,21 @@
                 </div>
             </div>
 
-            <!-- Right Column: Rules / Guidelines -->
+            <!-- Right Column: Rules / Guidelines (DYNAMICALLY POPULATED) -->
             <div>
                 <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     Safety Guidelines
                 </h2>
                 <div class="bg-orange-50 rounded-xl p-6 border border-orange-100 text-orange-800">
-                    <ul class="list-disc list-outside ml-4 space-y-2 text-sm">
-                        <li><strong>Safety Goggles:</strong> Must be worn at all times when handling chemicals.</li>
-                        <li><strong>No Food/Drink:</strong> Strictly prohibited inside the lab area.</li>
-                        <li><strong>Clean Up:</strong> All equipment must be returned to storage after use.</li>
-                        <li><strong>Emergency:</strong> Locate the eye wash station and fire extinguisher upon entry.</li>
-                    </ul>
+                    <!-- NEW: Display content from the database field -->
+                    {% if lab.safety_guidelines %}
+                        <div class="prose prose-sm text-orange-800">
+                            {{ lab.safety_guidelines|linebreaks }}
+                        </div>
+                    {% else %}
+                        <p class="text-sm">Safety guidelines not yet entered for this lab.</p>
+                    {% endif %}
                 </div>
 
                 <div class="mt-6 bg-white rounded-xl p-6 border border-gray-200 shadow-sm">

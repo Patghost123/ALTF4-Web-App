@@ -67,8 +67,13 @@
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <a href="{% url 'home' %}" class="font-bold text-2xl text-indigo-600">STEM Hub</a>
             <div class="space-x-4">
-                <a href="/reservations/book/" class="text-sm text-gray-600 hover:text-indigo-600">My Reservations</a>
+                {% if not user.is_staff and not user.is_superuser %}
+                    <a href="{% url 'reservations:my_reservations' %}">My Reservations</a>
+                {% endif %}
+                {% if user.is_staff %}
                 <a href="/analytics/dashboard/" class="text-sm text-gray-600 hover:text-indigo-600">Analytics</a>
+                <a href="{% url 'reservations:dashboard' %}" class="text-sm text-red-600 hover:text-indigo-600">Admin Panel</a>
+                {% endif %}
             </div>
         </div>
     </nav>

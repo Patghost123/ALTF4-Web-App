@@ -79,7 +79,7 @@
             <a href="/">Home</a>
             <a href="{% url 'labs:index' %}">Labs</a>
             <a href="{% url 'reservations:timetable' %}">Calendar</a>
-            <a href="/auth/" class="logout-btn">Log Out</a>
+            <a href="{% url 'interactive_auth' %}" class="logout-btn">Log Out</a>
         </nav>
     </header>
 
