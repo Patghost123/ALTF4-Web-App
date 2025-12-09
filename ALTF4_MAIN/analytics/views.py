@@ -9,6 +9,8 @@ from labs.models import Lab
 def is_staff(user):
     return user.is_staff
 
+@login_required 
+
 def dashboard(request):
     # 1. Lab Usage Stats
     # Groups by 'lab' and counts the number of reservations

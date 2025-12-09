@@ -3,13 +3,19 @@ from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 
+@login_required
 # Your existing view (keeps rendering base.html)
 def home_redirect_view(request):
     return render(request, 'base.html')
 
 # The NEW Advanced Auth View
 def interactive_auth(request):
+    # If user is already logged in, redirect them to the home page
+    if request.user.is_authenticated:
+        return redirect('home')
+
     # Initialize forms for GET requests
     login_form = AuthenticationForm()
     signup_form = UserCreationForm()
@@ -51,3 +57,11 @@ def interactive_auth(request):
 @login_required # Forces user to be logged in to see this
 def profile(request):
     return render(request, 'account/profile.html')
+
+def logout_view(request):
+    """
+    Completely logs out the user, flushes the session, and redirects to the login page.
+    """
+    logout(request)
+    messages.success(request, "You have been successfully logged out.")
+    return redirect('interactive_auth')

@@ -318,7 +318,8 @@
         <a href="{% url 'reservations:dashboard' %}" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Admin Panel</a>
         <a href="/analytics/dashboard/" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Analytics</a>
       {% endif %}
-      <a href="{% url 'interactive_auth' %}" class="logout-btn">Log Out</a>
+      <!-- UPDATED LOGOUT LINK -->
+      <a href="{% url 'logout' %}" class="logout-btn">Log Out</a>
     </nav>
   </header>
 

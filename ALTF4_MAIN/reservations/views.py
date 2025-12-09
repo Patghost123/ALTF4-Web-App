@@ -93,9 +93,11 @@ def make_reservation(request, lab_id):
         
     return render(request, 'reservations/reserve.html', {'form': form, 'bookings': bookings, 'lab': lab})
 
+@login_required 
 def reservation_success(request):
     return render(request, 'reservations/success.html')
 
+@login_required 
 def timetable(request):
     labs = Lab.objects.filter(is_active=True)
     selected_lab_id = request.GET.get('lab')
