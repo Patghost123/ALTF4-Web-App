@@ -64,6 +64,117 @@
       color: #2563eb;
     }
 
+    /* --- Notification Bell & Dropdown CSS --- */
+    .notif-container {
+      position: relative;
+      margin-left: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+
+    .bell-icon {
+      font-size: 1.5rem;
+      color: #64748b;
+      transition: color 0.3s;
+    }
+    .bell-icon:hover { color: #2563eb; }
+
+    .badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #ef4444;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+
+    .notif-dropdown {
+      display: none; /* Hidden by default */
+      position: absolute;
+      top: 150%;
+      right: -10px;
+      width: 340px;
+      background: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e2e8f0;
+      z-index: 1100;
+      overflow: hidden;
+    }
+    .notif-dropdown.active { display: block; }
+
+    .notif-header {
+      padding: 0.8rem 1rem;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .notif-list {
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    /* --- Dynamic Notification Colors --- */
+    .notif-item {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.85rem;
+      color: #475569;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      /* Default border incase type is missing */
+      border-left: 4px solid #cbd5e1; 
+      background: white;
+    }
+
+    /* Warning (Red) */
+    .notif-item.warning {
+        border-left-color: #ef4444; 
+        background: #fef2f2;
+    }
+    
+    /* Info (Blue) */
+    .notif-item.info {
+        border-left-color: #3b82f6;
+        background: #eff6ff;
+    }
+
+    /* Success (Green) */
+    .notif-item.success {
+        border-left-color: #22c55e;
+        background: #f0fdf4;
+    }
+
+    .notif-item:hover {
+       filter: brightness(0.98); /* Slight darken on hover */
+    }
+
+    .notif-item:last-child { border-bottom: none; }
+    
+    .notif-item .mark-read {
+        color: #94a3b8;
+        font-size: 1rem;
+        cursor: pointer;
+        text-decoration: none;
+        padding-left: 5px;
+        transition: color 0.2s;
+    }
+    .notif-item .mark-read:hover { color: #2563eb; }
+
+
     /* --- Hero Section --- */
     .hero {
       background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
@@ -94,7 +205,6 @@
    
     .hero-buttons { display: flex; gap: 1rem; justify-content: center; }
 
-    /* Updated CSS to handle both <button> and <a> tags in the hero */
     .hero button, .hero a.reserve-now {
       padding: 0.9rem 2rem;
       border: none;
@@ -103,7 +213,7 @@
       font-weight: 600;
       font-size: 1rem;
       transition: transform 0.2s, box-shadow 0.2s;
-      display: inline-block; /* Important for the <a> tag to respect padding */
+      display: inline-block;
     }
    
     .hero .view-labs {
@@ -230,7 +340,7 @@
     .btn-map:hover { background: #eff6ff; }
 
 
-    /* --- Notifications --- */
+    /* --- Notifications (Old Section - Can be removed if needed) --- */
     .notifications-wrapper {
       padding: 0 5%;
       margin-bottom: 4rem;
@@ -317,8 +427,39 @@
       {% if user.is_staff %}
         <a href="{% url 'reservations:dashboard' %}" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Admin Panel</a>
         <a href="/analytics/dashboard/" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Analytics</a>
+        <a href="{% url 'notifications:create_announcement' %}" style="color: #2563eb; font-weight: bold; border: 1px solid #bfdbfe; padding: 0.25rem 0.75rem; border-radius: 9999px;">Broadcast</a>
       {% endif %}
-      <!-- UPDATED LOGOUT LINK -->
+
+      {% if user.is_authenticated %}
+      <div class="notif-container" onclick="toggleNotif()">
+        <span class="bell-icon">🔔</span> 
+        
+        {% if unread_count > 0 %}
+            <span class="badge">{{ unread_count }}</span>
+        {% endif %}
+
+        <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+                Notifications
+                <span style="font-size:0.8rem; color:#64748b;">{{ unread_count|default:"0" }} New</span>
+            </div>
+            <div class="notif-list">
+                {% if notifications_list %}
+                    {% for notif in notifications_list %}
+                        <div class="notif-item {{ notif.notification_type }}">
+                            <span>{{ notif.message }}</span>
+                            <a href="{% url 'notifications:mark_read' notif.id %}" class="mark-read" title="Mark as read">✔</a>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="notif-item" style="justify-content: center; color: #94a3b8; border-left: 4px solid #e2e8f0;">
+                        No new notifications
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+      </div>
+      {% endif %}
       <a href="{% url 'logout' %}" class="logout-btn">Log Out</a>
     </nav>
   </header>
@@ -328,7 +469,6 @@
     <p>Your academic dashboard for labs, equipment, and resources.</p>
     <div class="hero-buttons">
       <button class="view-labs" onclick="scrollToLabs()">Browse Labs</button>
-      
       <a href="{% url 'labs:index' %}" class="reserve-now">View Interactive Map</a>
     </div>
   </section>
@@ -393,18 +533,19 @@
   </div>
 
   <script>
-    // --- Mock Notifications ---
+    // --- Mock Notifications (Existing) ---
     const notifications = [
       "Physics Lab maintenance scheduled for 12 Dec, 2 PM",
       "Robotics Lab is fully booked for the current week",
       "New shipment of Chemicals arrived in Lab 2"
     ];
 
-    // --- Inject Notifications ---
     const notifContainer = document.getElementById('notifications-list');
-    notifications.forEach(note => {
-      notifContainer.innerHTML += `<li>${note}</li>`;
-    });
+    if(notifContainer){
+        notifications.forEach(note => {
+          notifContainer.innerHTML += `<li>${note}</li>`;
+        });
+    }
 
     // --- Modal Functions ---
     const modal = document.getElementById('modal');
@@ -419,15 +560,30 @@
       modal.style.display = 'none';
     }
    
-    // --- Scroll to Labs ---
     function scrollToLabs(){
       document.getElementById('labs').scrollIntoView({behavior:'smooth'});
     }
 
-    // Close modal if clicking outside content
+    // --- NOTIFICATION BELL LOGIC ---
+    function toggleNotif() {
+      const dropdown = document.getElementById('notifDropdown');
+      if (dropdown.style.display === 'block') {
+        dropdown.style.display = 'none';
+      } else {
+        dropdown.style.display = 'block';
+      }
+    }
+
     window.onclick = function(event) {
       if (event.target == modal) {
         closeModal();
+      }
+      const notifContainer = document.querySelector('.notif-container');
+      const dropdown = document.getElementById('notifDropdown');
+      
+      // Close dropdown if clicking outside
+      if (notifContainer && !notifContainer.contains(event.target)) {
+         if(dropdown) dropdown.style.display = 'none';
       }
     }
   </script>
