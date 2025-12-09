@@ -32,15 +32,16 @@
                         {% if lab.is_active %}
                             <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">Active</span>
                         {% else %}
+                            <!-- Display Maintenance/Unavailable Status -->
                             <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">Maintenance/Unavailable</span>
                         {% endif %}
                         
-                        <!-- NEW: Edit Link for Staff Only -->
+                        <!-- STAFF EDIT BUTTON (New Feature) -->
                         {% if user.is_staff %}
                         <a href="{% url 'labs:edit' slug=lab.slug %}" 
-                           class="text-sm font-medium text-indigo-600 hover:underline ml-4 flex items-center gap-1">
+                           class="text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-lg ml-4 flex items-center gap-1 transition-colors">
                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.878a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                           Edit Details
+                           Edit Lab Details
                         </a>
                         {% endif %}
                     </div>
@@ -50,15 +51,15 @@
                 <!-- Action Card -->
                 <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 min-w-[200px] text-center">
                     <p class="text-xs text-indigo-600 uppercase font-bold tracking-wider mb-1">Capacity</p>
-                    <p class="text-2xl font-bold text-indigo-900 mb-3">{{ lab.capacity }} Students</p>
+                    <p class="2xl font-bold text-indigo-900 mb-3">{{ lab.capacity }} Students</p>
                     
                     {% if lab.is_active %}
-                        <!-- Link to Reservation App -->
-                        <!-- Passes the lab ID via query param to pre-select it in the booking form -->
-                        <a href="{% url 'reservations:make_reservation' lab_id=lab.id %}" class="block w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition shadow-md">
+                        <!-- Link to Reservation App (Active) -->
+                        <a href="/reservations/book/?lab_id={{ lab.id }}" class="block w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition shadow-md">
                             Book Now
                         </a>
                     {% else %}
+                        <!-- Button for Maintenance State (Disabled) -->
                         <button disabled class="block w-full py-2 bg-gray-300 text-gray-500 font-semibold rounded-lg cursor-not-allowed">
                             Unavailable
                         </button>
@@ -106,7 +107,7 @@
                                             </span>
                                         {% else %}
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                Broken
+                                                Unavailable/Broken
                                             </span>
                                         {% endif %}
                                     </td>

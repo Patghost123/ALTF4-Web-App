@@ -10,10 +10,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('reservations/', include('reservations.urls')),
     path('labs/', include('labs.urls')),
-    
-    # NEW: Include the analytics app
     path('analytics/', include('analytics.urls')), 
-    
     path('profile/', root_views.profile, name='profile'),
     path('auth/', root_views.interactive_auth, name='interactive_auth'),
 ]

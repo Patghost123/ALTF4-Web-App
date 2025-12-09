@@ -15,19 +15,9 @@
             fill: #D9D9D9; 
         }
 
-        /* --- MAINTENANCE STYLE (Orange Outline) --- */
-        .maintenance {
-            stroke: #F97316 !important; /* Tailwind Orange-500 */
-            stroke-width: 4px !important; /* Thick border */
-            fill: #FFEDD5 !important;   /* Light Orange Fill */
-            paint-order: stroke;        /* Ensures stroke sits clearly on top */
-        }
-        
-        /* Status Colors (for sidebar badges) */
+        /* Status Colors */
         .status-free { fill: #10B981 !important; } 
-        /* FIXED: Removed pointer-events: none so you can click busy labs */
-        .status-busy { fill: #EF4444 !important; } 
-        .status-maintenance { fill: #F59E0B !important; }
+        .status-maintenance { fill: #F59E0B !important; } 
         
         /* Tooltip */
         .tooltip {
@@ -75,7 +65,7 @@
     <!-- Navigation -->
     <nav class="bg-white border-b border-gray-200 px-6 py-4 mb-8 shadow-md">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <a href="{% url 'labs:index' %}" class="font-bold text-2xl text-indigo-600">STEM Hub</a>
+            <a href="{% url 'home' %}" class="font-bold text-2xl text-indigo-600">STEM Hub</a>
             <div class="space-x-4">
                 <a href="/reservations/book/" class="text-sm text-gray-600 hover:text-indigo-600">My Bookings</a>
                 <a href="/analytics/dashboard/" class="text-sm text-gray-600 hover:text-indigo-600">Analytics</a>
@@ -94,16 +84,12 @@
             <!-- Legend -->
             <div class="flex justify-center gap-6 mb-6 text-sm font-medium">
                 <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-green-500"></div> Available</div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div> Occupied</div>
-                <div class="flex items-center gap-2 border-2 border-orange-500 rounded px-1"><div class="w-3 h-3 rounded-full bg-orange-100"></div> Maintenance (Orange Outline)</div>
+                <div class="flex items-center gap-2 border-2 border-orange-500 rounded px-1"><div class="w-3 h-3 rounded-full" style="background:#F59E0B !important;"></div>Unavailable / Maintenance</div>
             </div>
 
             <!-- Map Container -->
             <div class="w-full relative"> 
-                <!-- Note: Tooltip is moved to body by JS for better positioning -->
                 <div id="map-tooltip" class="tooltip"></div>
-
-                <!-- SVG Inclusion -->
                 {% include 'labs/STEM_labs.svg' %}
             </div>
         </div>
@@ -128,8 +114,8 @@
                class="hidden w-full py-3 px-4 text-center bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition shadow-md">
                 View Lab & Make Reservation
             </a>
-            <p id="reservation-message" class="text-center text-sm text-red-500 hidden">
-                Lab is currently occupied.
+            <p id="reservation-message" class="text-center text-sm text-red-500 hidden font-bold">
+                Lab is currently unavailable.
             </p>
         </div>
     </div>
@@ -142,60 +128,67 @@
                 name: "{{ lab.name|escapejs }}", 
                 slug: "{{ lab.slug|escapejs }}", 
                 capacity: {{ lab.capacity }}, 
-                description: "{{ lab.description|escapejs }}" 
+                description: "{{ lab.description|escapejs }}",
+                isActive: {{ lab.is_active|yesno:"true,false" }}
             },
             {% endfor %}
         };
 
-        // 2. DB STATUS INJECTION (Is Active = True means Working, False means Maintenance)
+        // 2. DB STATUS INJECTION (Used for initial coloring and sidebar logic)
         const DB_STATUS = {
             {% for lab in labs %}
                 "{{ lab.map_svg_id }}": {{ lab.is_active|yesno:"true,false" }},
             {% endfor %}
         };
-
+        
         // 3. SIDEBAR LOGIC
-        function openSidebar(svgId, currentStatus) {
-            console.log(`Attempting to open sidebar for ID: ${svgId} with Status: ${currentStatus}`); 
-            
+        function openSidebar(svgId) {
             const sidebar = document.getElementById('lab-sidebar');
-            const title = document.getElementById('sidebar-title');
-            const content = document.getElementById('sidebar-content');
             const button = document.getElementById('reservation-button');
             const message = document.getElementById('reservation-message');
             
             const data = LAB_DATA[svgId];
+            const isActive = data ? data.isActive : true;
 
             if (!data) {
-                console.error(`ERROR: Sidebar failed. No data found in LAB_DATA for ID: '${svgId}'`);
-                console.log("Available Keys in LAB_DATA:", Object.keys(LAB_DATA));
+                // Error state
+                document.getElementById('sidebar-title').innerText = `Error: Missing Data (${svgId})`;
+                document.getElementById('sidebar-content').innerHTML = `<p class="text-red-500">Element is not linked to a Lab record.</p>`;
+                button.classList.add('hidden');
+                message.classList.remove('hidden');
+                message.textContent = "Data Link Broken.";
+                button.href = "#"; 
+                sidebar.style.display = 'block';
                 return; 
             }
 
-            // Determine Display Status Badge based on the passed status
+            // Status badge
             let statusBadge = '';
             
-            if (currentStatus === 'maintenance') {
-                statusBadge = '<span class="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs font-semibold">Maintenance</span>';
-                // Usually allow viewing details even if under maintenance, but maybe hide booking
-                button.classList.remove('hidden'); 
-                message.classList.add('hidden');
-            } else if (currentStatus === 'busy') {
-                statusBadge = '<span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-semibold">Occupied</span>';
-                // Hide booking button if busy
-                button.classList.add('hidden');
-                message.classList.remove('hidden');
-                message.textContent = "Lab is currently occupied/busy.";
+            if (isActive === false) {
+                // MAINTENANCE / UNAVAILABLE
+                statusBadge = '<span class="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs font-semibold">Maintenance / Unavailable</span>';
+                
+                // --- FIX: Allow Viewing, but disable booking action ---
+                button.classList.remove('hidden'); // Show button
+                button.textContent = "View Details Only"; // Change button text
+                message.classList.add('hidden'); // Hide red error message
+                button.href = `/labs/${data.slug}/`; // Keep the link active for viewing
+                // --- END FIX ---
             } else {
-                // Default: Free/Available
+                // AVAILABLE
                 statusBadge = '<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-semibold">Available</span>';
+                
+                // Show booking button
                 button.classList.remove('hidden');
+                button.textContent = "View Lab & Make Reservation"; // Reset button text
                 message.classList.add('hidden');
+                button.href = `/labs/${data.slug}/`; // Set link for active lab
             }
 
             // Populate Content
-            title.innerText = data.name;
-            content.innerHTML = `
+            document.getElementById('sidebar-title').innerText = data.name;
+            document.getElementById('sidebar-content').innerHTML = `
                 <div class="space-y-3">
                     <div class="flex justify-between border-b pb-2">
                         <span class="font-semibold text-gray-600">Status:</span>
@@ -209,9 +202,6 @@
                 </div>
             `;
 
-            // Configure Button Link
-            button.href = `/labs/${data.slug}/`; 
-
             // Show Sidebar
             sidebar.style.display = 'block';
         }
@@ -221,11 +211,11 @@
         }
 
         // 4. MAP INITIALIZATION
-        window.onload = function() {
-            const floorPlan = document.getElementById('floor-plan');
+        document.addEventListener('DOMContentLoaded', function() {
             const tooltip = document.getElementById('map-tooltip');
+            const floorPlan = document.getElementById('floor-plan');
+            const labRooms = document.querySelectorAll('[id^="stem_lab_"]');
 
-            // Move tooltip to body for correct absolute positioning
             if (tooltip) { document.body.appendChild(tooltip); }
 
             if (!floorPlan) {
@@ -233,87 +223,53 @@
                 return;
             }
 
-            // Select all interactive labs (IDs starting with stem_lab_)
-            const labRooms = document.querySelectorAll('[id^="stem_lab_"]');
-            
-            // --- DEBUGGING START ---
-            console.log("--- DEBUGGING DATA ---");
-            console.log(`1. SVG Elements Found: ${labRooms.length}`);
-            console.log("2. Database Keys (LAB_DATA):", Object.keys(LAB_DATA));
-            
+            // Apply INITIAL STYLES (Color and Highlight)
             labRooms.forEach(room => {
-                const svgId = room.id;
-                const inDb = LAB_DATA.hasOwnProperty(svgId);
-                const status = inDb ? "MATCH ✅" : "MISSING IN DB ❌";
-                console.log(`   - SVG ID: '${svgId}' -> ${status}`);
+                const roomId = room.id;
+                
+                const data = LAB_DATA[roomId];
+                const isActive = data ? data.isActive : true;
+
+                // Apply Styles
+                room.classList.remove('status-free', 'status-maintenance');
+                
+                if (isActive === false) {
+                    // Maintenance styling
+                    room.classList.add('status-maintenance'); 
+                } else {
+                    room.classList.add('status-free'); // Green Fill
+                }
+
+                // --- Event Listeners ---
+                // A. MOUSE ENTER (Tooltip)
+                room.addEventListener('mouseenter', (e) => {
+                    const data = LAB_DATA[roomId];
+                    if(data) {
+                        tooltip.style.opacity = '1';
+                        tooltip.innerHTML = `<div class="font-bold">${data.name}</div>`;
+                        tooltip.style.left = (e.pageX + 10) + 'px';
+                        tooltip.style.top = (e.pageY + 10) + 'px';
+                    }
+                });
+
+                // B. MOUSE MOVE (Tooltip Follow)
+                room.addEventListener('mousemove', (e) => {
+                    tooltip.style.left = (e.pageX + 10) + 'px';
+                    tooltip.style.top = (e.pageY + 10) + 'px';
+                });
+
+                // C. MOUSE LEAVE (Hide Tooltip)
+                room.addEventListener('mouseleave', () => {
+                    tooltip.style.opacity = '0';
+                    tooltip.style.left = '-9999px'; 
+                });
+
+                // D. CLICK (Open Sidebar) - Guaranteed final handler
+                room.addEventListener('click', () => {
+                    openSidebar(roomId);
+                });
             });
-            console.log("------------------------");
-            // --- DEBUGGING END ---
-
-            // 1. Fetch Live Status (Busy/Free)
-            fetch('/reservations/api/status/')
-                .then(response => response.json())
-                .then(data => {
-                    const busyIds = data.occupied_ids || [];
-
-                    // 2. Iterate and Color Code
-                    labRooms.forEach(room => {
-                        const roomId = room.id;
-                        let finalStatus = 'free'; // Default is Green/Available
-
-                        // STATUS LOGIC PRIORITY:
-                        // 1. If DB says is_active=False -> Maintenance (Orange)
-                        // 2. If API says ID is in busy list -> Busy (Red)
-                        // 3. Else -> Free (Green)
-
-                        if (DB_STATUS.hasOwnProperty(roomId) && DB_STATUS[roomId] === false) {
-                            finalStatus = 'maintenance';
-                            // Move element to top for visibility of orange border
-                            if (room.parentNode) { room.parentNode.appendChild(room); }
-                        } 
-                        else if (busyIds.includes(roomId)) {
-                            finalStatus = 'busy';
-                        }
-
-                        // Apply Class
-                        room.classList.remove('status-free', 'status-busy', 'status-maintenance');
-                        room.classList.add(`status-${finalStatus}`);
-                        if (finalStatus === 'maintenance') {
-                            room.classList.add('maintenance');
-                        } else {
-                            room.classList.remove('maintenance');
-                        }
-
-                        // --- Event Listeners ---
-                        room.addEventListener('mouseenter', (e) => {
-                            const data = LAB_DATA[roomId];
-                            if(data) {
-                                tooltip.style.opacity = '1';
-                                tooltip.innerHTML = `<div class="font-bold">${data.name}</div>`;
-                                tooltip.style.left = (e.pageX + 10) + 'px';
-                                tooltip.style.top = (e.pageY + 10) + 'px';
-                            }
-                        });
-
-                        room.addEventListener('mousemove', (e) => {
-                            tooltip.style.left = (e.pageX + 10) + 'px';
-                            tooltip.style.top = (e.pageY + 10) + 'px';
-                        });
-
-                        room.addEventListener('mouseleave', () => {
-                            tooltip.style.opacity = '0';
-                            tooltip.style.left = '-9999px'; 
-                        });
-
-                        // D. CLICK (Open Sidebar)
-                        room.addEventListener('click', () => {
-                            console.log(`[CLICK] User clicked SVG ID: '${roomId}', Status: '${finalStatus}'`);
-                            openSidebar(roomId, finalStatus);
-                        });
-                    });
-                })
-                .catch(err => console.error("Error fetching status:", err));
-        };
+        });
     </script>
 </body>
 </html>

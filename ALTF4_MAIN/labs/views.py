@@ -1,14 +1,15 @@
-from django.shortcuts import render, get_object_or_404
-from django.views.generic.edit import UpdateView
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse_lazy, reverse
 from django.contrib.admin.views.decorators import staff_member_required
-from django.utils.decorators import method_decorator
-from django.urls import reverse_lazy
-from .models import Lab
-from .forms import LabForm
+from .models import Lab, Equipment
+from .forms import LabForm, EquipmentFormSet # Import forms and formsets
+
+# --- STANDARD VIEWS ---
 
 def index(request):
     """ Shows the map/list view of all labs """
-    labs = Lab.objects.filter(is_active=True)
+    # Fetch ALL labs, regardless of is_active status
+    labs = Lab.objects.all() 
     return render(request, 'labs/Labs_map.html', {'labs': labs})
 
 def lab_detail(request, slug):
@@ -16,19 +17,36 @@ def lab_detail(request, slug):
     lab = get_object_or_404(Lab, slug=slug) 
     return render(request, 'labs/lab.html', {'lab': lab})
 
-@method_decorator(staff_member_required, name='dispatch')
-class LabUpdateView(UpdateView):
+# --- NEW EDITING VIEW (Replaces LabUpdateView) ---
+
+@staff_member_required
+def lab_edit(request, slug):
     """
-    Allows staff members (admins) to edit existing Lab details.
-    
-    Uses LabForm for automatic handling of field validation and saving.
-    Requires staff_member_required decorator for security.
+    Handles the editing of Lab details (LabForm) and its related Equipment (Formset).
     """
-    model = Lab
-    form_class = LabForm
-    template_name = 'labs/Lab_form.html'
+    lab = get_object_or_404(Lab, slug=slug)
     
-    # After successful update, redirect back to the lab detail page
-    def get_success_url(self):
-        # We use the slug of the updated object (self.object) for the redirect
-        return reverse_lazy('labs:detail', kwargs={'slug': self.object.slug})
+    if request.method == 'POST':
+        # 1. Handle main Lab details
+        form = LabForm(request.POST, instance=lab)
+        # 2. Handle related Equipment details
+        formset = EquipmentFormSet(request.POST, request.FILES, instance=lab)
+        
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            return redirect('labs:detail', slug=lab.slug)
+        else:
+            # If invalid, re-render form with errors (useful for debugging)
+            print("Form or Formset validation failed:", form.errors, formset.errors)
+    else:
+        # Initial GET request
+        form = LabForm(instance=lab)
+        formset = EquipmentFormSet(instance=lab)
+    
+    # Render the combined form/formset template
+    return render(request, 'labs/lab_form.html', {
+        'lab': lab,
+        'form': form,
+        'formset': formset,
+    })
