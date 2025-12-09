@@ -94,7 +94,8 @@
    
     .hero-buttons { display: flex; gap: 1rem; justify-content: center; }
 
-    .hero button {
+    /* Updated CSS to handle both <button> and <a> tags in the hero */
+    .hero button, .hero a.reserve-now {
       padding: 0.9rem 2rem;
       border: none;
       border-radius: 3rem;
@@ -102,6 +103,7 @@
       font-weight: 600;
       font-size: 1rem;
       transition: transform 0.2s, box-shadow 0.2s;
+      display: inline-block; /* Important for the <a> tag to respect padding */
     }
    
     .hero .view-labs {
@@ -160,7 +162,7 @@
       transition: all 0.3s ease;
       border: 1px solid #f1f5f9;
       display: flex;
-      flex-direction: column; /* Ensures content stretches */
+      flex-direction: column; 
     }
    
     .lab-card:hover {
@@ -182,7 +184,7 @@
     .lab-meta {
       display: flex;
       justify-content: space-between;
-      margin-top: auto; /* Pushes meta to bottom of text area */
+      margin-top: auto; 
       padding-top: 1rem;
       border-top: 1px solid #f1f5f9;
       font-size: 0.85rem;
@@ -198,7 +200,7 @@
     }
 
     .lab-actions button, .lab-actions a {
-      flex: 1; /* Makes buttons equal width */
+      flex: 1;
       padding: 0.8rem;
       border-radius: 0.5rem;
       cursor: pointer;
@@ -305,16 +307,16 @@
 <body>
 
   <header>
-    <h1>STEM Hub</h1>
+    <h1><a href="/">STEM Hub</a></h1>
     <nav>
-      <a href="/">Home</a>
-      <a href="{% url 'labs:index' %}">Labs</a>
+      <a href="{% url 'labs:index' %}">Map</a>
       <a href="{% url 'reservations:timetable' %}">Calendar</a>        
       {% if not user.is_staff and not user.is_superuser %}
           <a href="{% url 'reservations:my_reservations' %}">My Reservations</a>
       {% endif %}    
       {% if user.is_staff %}
         <a href="{% url 'reservations:dashboard' %}" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Admin Panel</a>
+        <a href="/analytics/dashboard/" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Analytics</a>
       {% endif %}
       <a href="{% url 'interactive_auth' %}" class="logout-btn">Log Out</a>
     </nav>
@@ -325,7 +327,8 @@
     <p>Your academic dashboard for labs, equipment, and resources.</p>
     <div class="hero-buttons">
       <button class="view-labs" onclick="scrollToLabs()">Browse Labs</button>
-      <button class="reserve-now" onclick="openModal('New Reservation')">Quick Reserve</button>
+      
+      <a href="{% url 'labs:index' %}" class="reserve-now">View Interactive Map</a>
     </div>
   </section>
 

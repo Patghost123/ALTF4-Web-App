@@ -31,6 +31,9 @@
                 <span>STEM Hub</span>
             </a>
             <div class="flex items-center gap-4 text-sm font-medium">
+                {% if not user.is_staff and not user.is_superuser %}
+                    <a href="{% url 'reservations:my_reservations' %}" class="text-gray-500 hover:text-indigo-600 transition hidden sm:block">My Reservations</a>
+                {% endif %}
                 <a href="{% url 'labs:index' %}" class="text-gray-500 hover:text-indigo-600 transition hidden sm:block">Map</a>
                 <div class="text-indigo-600 font-semibold">Calendar</div>
             </div>
