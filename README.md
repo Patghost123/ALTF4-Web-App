@@ -1,5 +1,3 @@
-# ALTF4-Web-App
-
 # STEM Hub | University Lab Management System
 
 **STEM Hub** is a centralized web dashboard designed to streamline the scheduling, resource management, and communication flow for university STEM facilities. It replaces disjointed spreadsheets with a real-time, interactive reservation system.
