@@ -9,7 +9,8 @@ urlpatterns = [
     path('reservations/', include('reservations.urls')),
     path('labs/', include('labs.urls')), 
     path('profile/', root_views.profile, name='profile'),
-    path('auth/', root_views.interactive_auth, name='interactive_auth'),
+    # REMOVED: path('auth/', root_views.interactive_auth, name='interactive_auth'), 
+    # This URL is now defined directly in CORE/urls.py to match the LOGIN_URL=/auth/ setting.
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -55,7 +55,7 @@
                     
                     {% if lab.is_active %}
                         <!-- Link to Reservation App (Active) -->
-                        <a href="/reservations/book/?lab_id={{ lab.id }}" class="block w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition shadow-md">
+                        <a href="{% url 'reservations:make_reservation' lab_id=lab.id %}" class="block w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition shadow-md">
                             Book Now
                         </a>
                     {% else %}
