@@ -16,7 +16,7 @@ class Equipment(models.Model):
     name = models.CharField(max_length=200)
     serial_number = models.CharField(max_length=100, unique=True)
     is_operational = models.BooleanField(default=True)
-    last_maintenance = models.DateField(auto_now=True)
+    last_maintenance = models.DateField()
 
     def __str__(self):
         return f"{self.name} ({self.lab.name if self.lab else 'Storage'})"

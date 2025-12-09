@@ -10,8 +10,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('reservations/', include('reservations.urls')),
     path('labs/', include('labs.urls')),
-    
-    # NEW: Include the analytics app
     path('analytics/', include('analytics.urls')), 
     path('users/', include('users.urls')),
 ]
