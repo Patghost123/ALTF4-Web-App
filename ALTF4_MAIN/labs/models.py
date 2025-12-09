@@ -19,6 +19,7 @@ class Equipment(models.Model):
     description = models.TextField(null=True)
     is_operational = models.BooleanField(default=True)
     last_maintenance = models.DateField()
+    quantity = models.IntegerField(default=1)
 
     def __str__(self):
         return f"{self.name} ({self.lab.name if self.lab else 'Storage'})"

@@ -2,11 +2,9 @@ from django import forms
 from django.forms.models import inlineformset_factory
 from .models import Lab, Equipment
 
-# --- 1. Base Form for Lab Details ---
+# --- 1. Base Form for Lab Details (No Change) ---
 class LabForm(forms.ModelForm):
-    """
-    Form for updating the main Lab attributes.
-    """
+    # ... (Meta and widgets remain the same) ...
     class Meta:
         model = Lab
         fields = ['name', 'capacity', 'description', 'is_active', 'safety_guidelines']
@@ -17,14 +15,11 @@ class LabForm(forms.ModelForm):
             'capacity': forms.NumberInput(attrs={'class': 'w-full p-2 border rounded'}),
         }
 
-# --- Form for Equipment Item (used in Formset) ---
+# --- Updated Form for Equipment Item ---
 class EquipmentItemForm(forms.ModelForm):
-    """
-    Custom form used in the formset to apply widgets and simplify field rendering.
-    """
-    # 1. Explicitly define the field here to make it optional
+    
     description = forms.CharField(
-        required=False,  # <--- THIS FIXES THE ERROR
+        required=False,
         widget=forms.Textarea(attrs={
             'class': 'w-full p-2 border rounded', 
             'rows': 2, 
@@ -34,21 +29,23 @@ class EquipmentItemForm(forms.ModelForm):
 
     class Meta:
         model = Equipment
-        fields = ('name', 'serial_number', 'description', 'is_operational', 'last_maintenance')
+        # ADDED 'quantity' to the fields list
+        fields = ('name', 'serial_number', 'quantity', 'description', 'is_operational', 'last_maintenance')
         widgets = {
             'name': forms.TextInput(attrs={'class': 'w-full p-2 border rounded', 'placeholder': 'Equipment Name'}),
             'serial_number': forms.TextInput(attrs={'class': 'w-full p-2 border rounded', 'placeholder': 'S/N'}),
-            # Note: 'description' widget is now defined above, so we can remove it from here
+            # NEW WIDGET: Quantity input
+            'quantity': forms.NumberInput(attrs={'class': 'w-full p-2 border rounded', 'placeholder': 'Qty', 'min': 1}),
             'last_maintenance': forms.DateInput(attrs={'class': 'w-full p-2 border rounded', 'type': 'date'}),
         }
 
-# --- 2. Formset for Equipment Management ---
+# --- Updated Formset for Equipment Management ---
 EquipmentFormSet = inlineformset_factory(
     Lab,
     Equipment,
     form=EquipmentItemForm,
-    # ADDED 'description' here as well
-    fields=('name', 'serial_number', 'description', 'is_operational', 'last_maintenance'),
+    # ADDED 'quantity' to the formset fields list
+    fields=('name', 'serial_number', 'quantity', 'description', 'is_operational', 'last_maintenance'),
     extra=1,
     can_delete=True
 )
