@@ -1,7 +1,7 @@
 from django import forms
-from .models import Reservation
+from .models import Reservation, ReservationEquipment
 from labs.models import Equipment
-from django.db.models import Q
+from django.db.models import Q, Sum
 from datetime import timedelta, datetime, date, time
 
 def generate_time_choices():
@@ -41,10 +41,12 @@ class ReservationForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'border p-2 rounded w-full'})
     )
 
+    # We keep this to allow the form to validate *which* items are selected, 
+    # but we will manually handle quantity validation in clean()
     equipment = forms.ModelMultipleChoiceField(
         queryset=Equipment.objects.none(), 
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out'}),
         required=False,
+        widget=forms.CheckboxSelectMultiple(),
         label="Select Equipment Required"
     )
 
@@ -106,27 +108,27 @@ class ReservationForm(forms.ModelForm):
             end_time = end_dt.time()
             cleaned_data['end_time'] = end_time
 
-            # 4. User Schedule Conflict Check (New)
+            # 4. User Schedule Conflict Check
             if self.user and booking_date:
                 user_conflicts = Reservation.objects.filter(
                     user=self.user,
                     date=booking_date
                 ).exclude(
-                    status='REJECTED' # Ignore rejected, but count PENDING and CONFIRMED
+                    status='REJECTED'
                 ).filter(
                     Q(start_time__lt=end_time) & 
                     Q(end_time__gt=start_time)
                 )
                 
-                # Exclude current reservation if editing
                 if self.instance.pk:
                     user_conflicts = user_conflicts.exclude(pk=self.instance.pk)
 
                 if user_conflicts.exists():
                     raise forms.ValidationError("You already have another reservation during this time slot. Please choose a different time.")
 
-            # 5. Equipment Availability Check
+            # 5. Equipment Availability & Quantity Check
             if selected_equipment and self.lab and booking_date:
+                # Find overlapping reservations
                 overlapping_reservations = Reservation.objects.filter(
                     lab=self.lab,
                     date=booking_date
@@ -141,29 +143,71 @@ class ReservationForm(forms.ModelForm):
                     overlapping_reservations = overlapping_reservations.exclude(pk=self.instance.pk)
 
                 unavailable_items = []
+                self.cleaned_quantities = {} # Store for save()
+
                 for item in selected_equipment:
-                    if overlapping_reservations.filter(equipment=item).exists():
-                        unavailable_items.append(item.name)
+                    # Get Requested Quantity from POST data
+                    qty_key = f'quantity_{item.id}'
+                    try:
+                        requested_qty = int(self.data.get(qty_key, 1))
+                    except (ValueError, TypeError):
+                        requested_qty = 1
+                    
+                    if requested_qty < 1:
+                        raise forms.ValidationError(f"Invalid quantity for {item.name}.")
+                    
+                    # Store validated quantity
+                    self.cleaned_quantities[item.id] = requested_qty
+
+                    # Check Inventory Cap
+                    if requested_qty > item.quantity:
+                        raise forms.ValidationError(f"You requested {requested_qty} {item.name}(s), but the lab only has {item.quantity} in total.")
+
+                    # Check Overlapping Usage
+                    used_qty = ReservationEquipment.objects.filter(
+                        reservation__in=overlapping_reservations,
+                        equipment=item
+                    ).aggregate(total=Sum('quantity'))['total'] or 0
+                    
+                    remaining_qty = item.quantity - used_qty
+                    
+                    if requested_qty > remaining_qty:
+                        unavailable_items.append(f"{item.name} (Requested: {requested_qty}, Available: {remaining_qty})")
                 
                 if unavailable_items:
                     items_str = ", ".join(unavailable_items)
-                    raise forms.ValidationError(f"The following equipment is already booked for this time slot: {items_str}. Please choose a different time or equipment.")
+                    raise forms.ValidationError(f"Insufficient equipment availability for this time slot: {items_str}. Please reduce quantity or choose a different time.")
 
         return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        # Re-calculate end_time for saving (in case clean wasn't called or for safety)
-        if 'start_time' in self.cleaned_data and 'duration' in self.cleaned_data:
-            start_time = self.cleaned_data['start_time']
-            duration_minutes = int(self.cleaned_data['duration'])
-            dummy_date = date.today()
-            start_dt = datetime.combine(dummy_date, start_time)
-            end_dt = start_dt + timedelta(minutes=duration_minutes)
-            instance.end_time = end_dt.time()
+        
+        # Ensure end_time is set
+        if 'end_time' in self.cleaned_data:
+            instance.end_time = self.cleaned_data['end_time']
         
         if commit:
             instance.save()
-            self.save_m2m()
+            # Handle M2M manually with quantities
+            self.save_equipment(instance)
             
         return instance
+
+    def save_equipment(self, reservation):
+        """Helper to save ReservationEquipment with quantities"""
+        # Clear existing equipment if updating
+        reservation.reservationequipment_set.all().delete()
+        
+        selected_equipment = self.cleaned_data.get('equipment', [])
+        for item in selected_equipment:
+            qty = self.cleaned_quantities.get(item.id, 1)
+            ReservationEquipment.objects.create(
+                reservation=reservation,
+                equipment=item,
+                quantity=qty
+            )
+    
+    # Override save_m2m to do nothing, as we handle it in save_equipment
+    def save_m2m(self):
+        pass
