@@ -49,8 +49,6 @@ def my_reservations(request):
     
     return render(request, 'reservations/my_reservations.html', {'reservations': reservations})
 
-# ... [Existing User Views Below] ...
-
 @login_required 
 def make_reservation(request, lab_id):
     lab = get_object_or_404(Lab, pk=lab_id)
@@ -62,29 +60,19 @@ def make_reservation(request, lab_id):
         initial_data['start_time'] = request.GET['start_time']
 
     if request.method == 'POST':
-        form = ReservationForm(request.POST)
+        # Pass 'lab' and 'user' to the form for validation
+        form = ReservationForm(request.POST, lab=lab, user=request.user)
         if form.is_valid():
             reservation = form.save(commit=False)
             reservation.user = request.user
             reservation.lab = lab
             
-            conflicts = Reservation.objects.filter(
-                lab=reservation.lab,
-                date=reservation.date
-            ).exclude(
-                status='REJECTED'
-            ).filter(
-                Q(start_time__lt=reservation.end_time) & 
-                Q(end_time__gt=reservation.start_time)
-            )
-
-            if conflicts.exists():
-                form.add_error(None, "This time slot is already booked or pending approval.")
-            else:
-                reservation.save()
-                return redirect('reservations:success')
+            reservation.save()
+            form.save_m2m() # Important: Save the ManyToMany equipment data
+            return redirect('reservations:success')
     else:
-        form = ReservationForm(initial=initial_data)
+        # Pass 'lab' and 'user' to init the form correctly
+        form = ReservationForm(initial=initial_data, lab=lab, user=request.user)
 
     bookings = Reservation.objects.filter(
         lab=lab,
