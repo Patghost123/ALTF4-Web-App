@@ -43,11 +43,16 @@ class ReservationForm(forms.ModelForm):
 
     class Meta:
         model = Reservation
-        # CHANGED: Removed 'lab' from fields
-        fields = ['date', 'start_time']
+        # Added 'purpose' to the fields list
+        fields = ['date', 'start_time', 'purpose']
         
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'border p-2 rounded w-full'}),
+            'purpose': forms.Textarea(attrs={
+                'class': 'border p-2 rounded w-full', 
+                'rows': 3, 
+                'placeholder': 'Briefly describe your experiment or reason for booking...'
+            }),
         }
 
     def clean(self):
@@ -56,9 +61,18 @@ class ReservationForm(forms.ModelForm):
         start_time = cleaned_data.get('start_time')
         duration = cleaned_data.get('duration')
         
-        # Weekend Validation
+        # 1. Weekend Validation
         if booking_date and booking_date.weekday() >= 5:
             raise forms.ValidationError("Laboratories are closed on weekends. Please choose a weekday (Monday - Friday).")
+
+        # 2. Past Date/Time Validation
+        if booking_date:
+            if booking_date < date.today():
+                raise forms.ValidationError("You cannot book a date in the past.")
+            
+            if booking_date == date.today() and start_time:
+                if start_time < datetime.now().time():
+                    raise forms.ValidationError("You cannot book a time slot that has already passed today.")
 
         if start_time and duration:
             duration_minutes = int(duration)
@@ -84,4 +98,4 @@ class ReservationForm(forms.ModelForm):
         
         if commit:
             instance.save()
-        return instance
+        return instance 
