@@ -8,8 +8,9 @@
     <style>
         /* --- CSS VARIABLES & RESET --- */
         :root {
-            --primary: #00f2fe;
-            --secondary: #4facfe;
+            /* Updated colors to match the hero section gradient from base.html */
+            --primary: #2563eb; /* Lighter Blue/Indigo */
+            --secondary: #1e40af; /* Darker Blue/Indigo */
             --dark: #121212;
             --glass: rgba(255, 255, 255, 0.1);
             --border: 1px solid rgba(255, 255, 255, 0.2);
@@ -114,7 +115,8 @@
         }
 
         .overlay {
-            background: linear-gradient(to right, var(--secondary), var(--primary));
+            /* Updated gradient direction and colors to match the hero section feel */
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             background-repeat: no-repeat;
             background-size: cover;
             background-position: 0 0;
@@ -200,7 +202,18 @@
         button:active { transform: scale(0.95); }
         button:focus { outline: none; }
         button.ghost { background-color: transparent; border-color: #FFFFFF; }
-        button.action-btn { background: var(--primary); border: none; box-shadow: 0 0 10px var(--primary); }
+        
+        /* Updated button to use the primary color */
+        button.action-btn { 
+            background: var(--primary); 
+            border: none; 
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.4); /* Blue shadow for effect */
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        button.action-btn:hover {
+            background: #1d4ed8; /* Darker hover effect */
+        }
+
 
         /* Error Messages */
         .messages {
@@ -300,7 +313,8 @@
             draw() {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
-                ctx.fillStyle = this.color;
+                // Particle color updated to match the primary theme color
+                ctx.fillStyle = '#2563eb'; 
                 ctx.fill();
             }
             update() {
@@ -321,7 +335,8 @@
                 let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
                 let directionX = (Math.random() * 2) - 1; // Speed
                 let directionY = (Math.random() * 2) - 1;
-                let color = '#00f2fe';
+                // Color passed to particle is now white/light blue to contrast dark background
+                let color = 'rgba(255, 255, 255, 0.8)';
                 particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
             }
         }
@@ -341,7 +356,8 @@
                     let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
                         + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
                     if (distance < (canvas.width/7) * (canvas.height/7)) {
-                        ctx.strokeStyle = 'rgba(0, 242, 254, 0.1)';
+                        // Connection line color adjusted to soft blue/white theme
+                        ctx.strokeStyle = 'rgba(37, 99, 235, 0.2)'; 
                         ctx.lineWidth = 1;
                         ctx.beginPath();
                         ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
