@@ -148,7 +148,7 @@
 
     <main id="dashboard-content" class="standard-container py-10">
         
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4 print:hidden">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4 no-print">
             <div>
                 <h2 class="text-3xl font-bold text-gray-900">Analytics Dashboard</h2>
                 <p class="mt-1 text-sm text-gray-500">Insights into lab usage and student activity.</p>
@@ -161,18 +161,17 @@
             </div>
         </div>
 
-        <div class="mb-8 text-center hidden print:block" id="report-header">
+        <div class="mb-8 text-center hidden" id="report-header">
             <h2 class="text-3xl font-bold text-slate-900">Lab Usage & Resource Gap Report</h2>
             <p class="text-slate-500 text-sm mt-1">Generated on {% now "F j, Y" %}</p>
         </div>
 
         <div class="mb-8 bg-white p-6 rounded-xl shadow-sm border border-slate-200" id="analysis-controls">
-            
-            <h3 class="font-bold text-lg text-slate-800 mb-4 print:hidden">Analysis Controls (Current Thresholds)</h3>
+            <h3 class="font-bold text-lg text-slate-800 mb-4 no-print">Analysis Controls (Current Thresholds)</h3>
             
             <div class="print-threshold-display hidden print:block">
                 <h4 class="text-lg font-bold mb-3 text-gray-700">Applied Thresholds:</h4>
-                <div class="grid grid-cols-2 text-sm gap-2 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <div class="grid grid-cols-2 text-sm gap-2">
                     <div>
                         <strong>Maintenance Fail:</strong> <span class="text-red-600">{{ maintenance_threshold }}%</span>
                     </div>
@@ -349,20 +348,11 @@
             // Show report header temporarily for the PDF
             header.classList.remove('hidden');
 
-            // Find the wrapper for the web controls (Form inputs) and HIDE it before export
-            var controls = document.getElementById('analysis-controls'); 
-            if (controls) controls.classList.add('hidden');
-            
-            // Find the print summary and SHOW it before export
-            var printSummary = document.querySelector('.print-threshold-display');
-            if (printSummary) printSummary.classList.remove('hidden');
-
-
             // Capture current date for filename
             var today = new Date().toISOString().slice(0, 10);
 
             var opt = {
-                margin:       0.5,
+                margin:       [0.5, 0.5],
                 filename:     `STEM_Hub_Analytics_Report_${today}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 3, useCORS: true }, 
@@ -371,10 +361,8 @@
 
             // Generate PDF and save
             html2pdf().set(opt).from(element).save().then(function(){
-                // Hide header and SHOW controls/HIDE summary again after saving
+                // Hide header again after saving
                 header.classList.add('hidden');
-                if (controls) controls.classList.remove('hidden');
-                if (printSummary) printSummary.classList.add('hidden');
             });
         }
     </script>
