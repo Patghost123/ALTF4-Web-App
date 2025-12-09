@@ -78,14 +78,16 @@
                     <div class="equipment-form p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50">
                         <h3 class="font-medium text-gray-800 mb-3">Item #{{ forloop.counter }}</h3>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             {% for field in equipment_form.visible_fields %}
                                 
                                 {% if field.name == 'DELETE' %}
                                     {# Skip visible rendering #}
                                 {% else %}
-                                    {# Logic: If field is 'description', make it span 3 columns #}
-                                    <div class="field-wrapper {% if field.name == 'description' %}md:col-span-3{% endif %}">
+                                    {# Logic: If field is 'description' or 'is_operational', adjust span #}
+                                    <div class="field-wrapper 
+                                        {% if field.name == 'description' %}md:col-span-4{% endif %}
+                                        {% if field.name == 'is_operational' %}md:col-span-1{% endif %}">
                                         <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                                             {{ field.label }}
                                         </label>
@@ -125,14 +127,15 @@
                     {% endfor %}
 
                     <div id="empty-form" style="display: none;">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             {% for field in formset.empty_form.visible_fields %}
                                 
                                 {% if field.name == 'DELETE' %}
                                     {# Skip #}
                                 {% else %}
-                                    {# Logic: If field is 'description', make it span 3 columns #}
-                                    <div class="field-wrapper {% if field.name == 'description' %}md:col-span-3{% endif %}">
+                                    <div class="field-wrapper 
+                                        {% if field.name == 'description' %}md:col-span-4{% endif %}
+                                        {% if field.name == 'is_operational' %}md:col-span-1{% endif %}">
                                         <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                                             {{ field.label }}
                                         </label>

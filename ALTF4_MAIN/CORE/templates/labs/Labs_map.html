@@ -62,7 +62,6 @@
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans">
 
-    <!-- Navigation -->
     <nav class="bg-white border-b border-gray-200 px-6 py-4 mb-8 shadow-md">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <a href="{% url 'home' %}" class="font-bold text-xl text-indigo-600 flex items-center gap-2">STEM Hub</a>
@@ -87,13 +86,11 @@
 
         <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
             
-            <!-- Legend -->
             <div class="flex justify-center gap-6 mb-6 text-sm font-medium">
                 <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-green-500"></div> Available</div>
                 <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full" style="background:#F59E0B !important;"></div>Unavailable / Maintenance</div>
             </div>
 
-            <!-- Map Container -->
             <div class="w-full relative"> 
                 <div id="map-tooltip" class="tooltip"></div>
                 {% include 'labs/STEM_labs.svg' %}
@@ -101,7 +98,6 @@
         </div>
     </main>
 
-    <!-- LAB DETAIL SIDEBAR -->
     <div id="lab-sidebar" class="bg-white p-6 flex flex-col justify-between" style="display: none;">
         <div>
             <div class="flex justify-between items-center mb-6">
@@ -114,7 +110,6 @@
             </div>
         </div>
 
-        <!-- Action Area -->
         <div class="py-4 border-t border-gray-100 mt-4">
             <a id="reservation-button" href="#" 
                class="hidden w-full py-3 px-4 text-center bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition shadow-md">
@@ -135,7 +130,12 @@
                 slug: "{{ lab.slug|escapejs }}", 
                 capacity: {{ lab.capacity }}, 
                 description: "{{ lab.description|escapejs }}",
-                isActive: {{ lab.is_active|yesno:"true,false" }}
+                isActive: {{ lab.is_active|yesno:"true,false" }},
+                // Passing the count of distinct equipment entries
+                equipment_type_count: {{ lab.equipment.all|length }},
+                // NOTE: To get the true quantity sum, update your view using ORM aggregation (Sum('equipment__quantity'))
+                // Placeholder to show total equipment quantity IF available in context:
+                total_quantity_sum: 0 // Replace with {{ lab.total_quantity|default:0 }} if view is updated
             },
             {% endfor %}
         };
@@ -157,7 +157,6 @@
             const isActive = data ? data.isActive : true;
 
             if (!data) {
-                // Error state
                 document.getElementById('sidebar-title').innerText = `Error: Missing Data (${svgId})`;
                 document.getElementById('sidebar-content').innerHTML = `<p class="text-red-500">Element is not linked to a Lab record.</p>`;
                 button.classList.add('hidden');
@@ -168,29 +167,26 @@
                 return; 
             }
 
-            // Status badge
             let statusBadge = '';
             
             if (isActive === false) {
-                // MAINTENANCE / UNAVAILABLE
                 statusBadge = '<span class="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs font-semibold">Maintenance / Unavailable</span>';
                 
-                // --- FIX: Allow Viewing, but disable booking action ---
-                button.classList.remove('hidden'); // Show button
-                button.textContent = "View Lab Only"; // Change button text
-                message.classList.add('hidden'); // Hide red error message
-                button.href = `/labs/${data.slug}/`; // Keep the link active for viewing
-                // --- END FIX ---
+                button.classList.remove('hidden'); 
+                button.textContent = "View Lab Only"; 
+                message.classList.add('hidden'); 
+                button.href = `/labs/${data.slug}/`; 
             } else {
-                // AVAILABLE
                 statusBadge = '<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-semibold">Available</span>';
                 
-                // Show booking button
                 button.classList.remove('hidden');
-                button.textContent = "View Lab & Make Reservation"; // Reset button text
+                button.textContent = "View Lab & Make Reservation"; 
                 message.classList.add('hidden');
-                button.href = `/labs/${data.slug}/`; // Set link for active lab
+                button.href = `/labs/${data.slug}/`; 
             }
+            
+            // Displays count of distinct item types as a placeholder
+            const equipmentText = data.equipment_type_count === 1 ? 'item type listed' : 'item types listed';
 
             // Populate Content
             document.getElementById('sidebar-title').innerText = data.name;
@@ -203,6 +199,10 @@
                     <div class="flex justify-between border-b pb-2">
                         <span class="font-semibold text-gray-600">Capacity:</span>
                         <span>${data.capacity} Students</span>
+                    </div>
+                    <div class="flex justify-between border-b pb-2">
+                        <span class="font-semibold text-gray-600">Inventory:</span>
+                        <span>${data.equipment_type_count} ${equipmentText}</span>
                     </div>
                     <p class="text-sm text-gray-600 leading-relaxed">${data.description}</p>
                 </div>
@@ -240,14 +240,12 @@
                 room.classList.remove('status-free', 'status-maintenance');
                 
                 if (isActive === false) {
-                    // Maintenance styling
                     room.classList.add('status-maintenance'); 
                 } else {
                     room.classList.add('status-free'); // Green Fill
                 }
 
                 // --- Event Listeners ---
-                // A. MOUSE ENTER (Tooltip)
                 room.addEventListener('mouseenter', (e) => {
                     const data = LAB_DATA[roomId];
                     if(data) {
@@ -258,19 +256,16 @@
                     }
                 });
 
-                // B. MOUSE MOVE (Tooltip Follow)
                 room.addEventListener('mousemove', (e) => {
                     tooltip.style.left = (e.pageX + 10) + 'px';
                     tooltip.style.top = (e.pageY + 10) + 'px';
                 });
 
-                // C. MOUSE LEAVE (Hide Tooltip)
                 room.addEventListener('mouseleave', () => {
                     tooltip.style.opacity = '0';
                     tooltip.style.left = '-9999px'; 
                 });
 
-                // D. CLICK (Open Sidebar) - Guaranteed final handler
                 room.addEventListener('click', () => {
                     openSidebar(roomId);
                 });
