@@ -184,7 +184,7 @@
       padding: 5rem 2rem;
       margin: 2rem auto;
       width: 90%;
-      /* Removed max-width: 70rem to make it wider */
+      /* max-width removed to keep it wide */
       border-radius: 1.5rem;
       box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
       position: relative;
@@ -321,7 +321,7 @@
       transition: all 0.2s;
     }
 
-    .btn-book { background: #2563eb; color: white; border: none; display: flex; align-items: center; justify-content: center;}
+    .btn-book { background: #2563eb; color: white; border: none; }
     .btn-book:hover { background: #1d4ed8; }
     .btn-map { background: white; color: #2563eb; border: 1px solid #2563eb; display: flex; align-items: center; justify-content: center; }
     .btn-map:hover { background: #eff6ff; }
@@ -484,7 +484,18 @@
   </header>
 
   <section class="hero">
-    <h1>Welcome back, {{ user.first_name|default:"Student" }}</h1>
+    <h1>Welcome back, 
+        {# Check for first name first, if empty, default to role #}
+        {% with user.first_name|default:"" as name %}
+            {% if name %}
+                {{ name }}
+            {% elif user.is_staff or user.is_superuser %}
+                Admin
+            {% else %}
+                Student
+            {% endif %}
+        {% endwith %}
+    </h1>
     <p>Your academic dashboard for labs, equipment, and resources.</p>
     <div class="hero-buttons">
       <button class="view-labs" onclick="scrollToLabs()">Browse Labs</button>
