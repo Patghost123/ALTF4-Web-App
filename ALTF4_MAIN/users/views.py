@@ -1,14 +1,8 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib import messages
-
-
-
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
 # Your existing view (keeps rendering base.html)
 def home_redirect_view(request):
@@ -53,10 +47,6 @@ def interactive_auth(request):
     
     # Make sure your HTML file from the previous step is named 'auth.html'
     return render(request, 'account/auth.html', context)
-
-from django.contrib.auth.decorators import login_required
-
-# ... your existing imports ...
 
 @login_required # Forces user to be logged in to see this
 def profile(request):

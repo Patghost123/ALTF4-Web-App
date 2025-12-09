@@ -81,7 +81,8 @@
     <main class="max-w-6xl mx-auto px-6 pb-12">
         <div class="text-center mb-10">
             <h1 class="text-3xl font-bold text-gray-900">Live Facility Map</h1>
-            <p class="text-gray-600 mt-2">Real-time status of all active labs and workshops.</p>
+            <p class="text-gray-600 mt-2">Real-time status of all labs and workshops.</p>
+            <p class="text-gray-600">Click on a lab to view it.</p>
         </div>
 
         <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
@@ -176,7 +177,7 @@
                 
                 // --- FIX: Allow Viewing, but disable booking action ---
                 button.classList.remove('hidden'); // Show button
-                button.textContent = "View Details Only"; // Change button text
+                button.textContent = "View Lab Only"; // Change button text
                 message.classList.add('hidden'); // Hide red error message
                 button.href = `/labs/${data.slug}/`; // Keep the link active for viewing
                 // --- END FIX ---
