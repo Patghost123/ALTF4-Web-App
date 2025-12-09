@@ -1,14 +1,12 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum # Import Sum
 from django.utils import timezone 
 from reservations.models import Reservation
-from labs.models import Lab, Equipment
-from datetime import timedelta 
-from reservations.models import Reservation
-from labs.models import Lab, Equipment
-from django.utils import timezone
-from datetime import datetime
+from labs.models import Lab, Equipment # Assuming ReservationEquipment is imported via reservations.models
+from datetime import timedelta, datetime
+# Assuming ReservationEquipment is available in the context via an intermediate model, 
+# but we will rely on Sum annotation on the related Equipment model.
 
 def is_staff(user):
     return user.is_staff
@@ -16,11 +14,8 @@ def is_staff(user):
 @login_required 
 @user_passes_test(is_staff)
 def dashboard(request):
-    # Define the rolling 30-day period for booking stats
-    thirty_days_ago = timezone.now().date() - timedelta(days=30)
-    
-    # FIX: Define the 60-day backlog threshold date for maintenance
-    sixty_days_ago = timezone.now().date() - timedelta(days=60) # <--- ADDED DEFINITION HERE
+    # Define time period for checks
+    sixty_days_ago = timezone.now().date() - timedelta(days=60)
 
     # --- 1. Get Thresholds from User Input ---
     
@@ -52,137 +47,141 @@ def dashboard(request):
     maintenance_backlog_threshold = safe_convert(raw_backlog_threshold, DEFAULT_BACKLOG)
     density_threshold = safe_convert(raw_density_threshold, DEFAULT_DENSITY, type_func=float)
 
-
-    # --- 2. Stats & Bookings (Rolling 30-Day Period) ---
-    recent_reservations = Reservation.objects.filter(date__gte=thirty_days_ago)
-
-    lab_stats = recent_reservations.values('lab__name').annotate(
-        total_bookings=Count('id')
-    ).order_by('-total_bookings')
-
-    user_stats = recent_reservations.values('user__username', 'user__email').annotate(
-        total_bookings=Count('id')
-    ).order_by('-total_bookings')
-
-    total_reservations = recent_reservations.count() 
-    total_labs = Lab.objects.filter(is_active=True).count()
-
-    # --- Date & Lab Filtering Logic ---
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-    selected_lab_id = request.GET.get('lab_id')
+    # --- 2. Date and Lab Filtering Logic (Applies to main stats tables) ---
+    start_date_raw = request.GET.get('start_date')
+    end_date_raw = request.GET.get('end_date')
+    selected_lab_id_raw = request.GET.get('lab_id') # Renamed to prevent conflict with converted variable
     
     # Base Queryset
     reservations = Reservation.objects.all()
 
-    # Apply Filters
-    if start_date:
-        reservations = reservations.filter(date__gte=start_date)
-    if end_date:
-        reservations = reservations.filter(date__lte=end_date)
-    if selected_lab_id:
-        reservations = reservations.filter(lab_id=selected_lab_id)
+    # Apply Filters (Date and Lab)
+    if start_date_raw:
+        try:
+            start_date = datetime.strptime(start_date_raw, '%Y-%m-%d').date()
+            reservations = reservations.filter(date__gte=start_date)
+        except ValueError:
+            start_date = None
+    else:
+        start_date = None
 
-    # 1. Lab Usage Stats (Filtered)
-    # If a specific lab is selected, this list will only have 1 item, which is fine.
+    if end_date_raw:
+        try:
+            end_date = datetime.strptime(end_date_raw, '%Y-%m-%d').date()
+            reservations = reservations.filter(date__lte=end_date)
+        except ValueError:
+            end_date = None
+    else:
+        end_date = None
+        
+    selected_lab_id = None
+    if selected_lab_id_raw:
+        try:
+            selected_lab_id = int(selected_lab_id_raw)
+            reservations = reservations.filter(lab_id=selected_lab_id)
+        except ValueError:
+            selected_lab_id = None
+
+
+    # --- 3. Filtered Stats Calculation ---
+
+    # Lab Usage Stats (Filtered by date range & selected lab)
     lab_stats = reservations.values('lab__name').annotate(
         total_bookings=Count('id')
     ).order_by('-total_bookings')
 
-    # 2. User Activity Stats (Filtered)
+    # User Activity Stats (Filtered)
     user_stats = reservations.values('user__username', 'user__email').annotate(
         total_bookings=Count('id')
     ).order_by('-total_bookings')
 
-    # 3. Equipment Usage Stats (Filtered)
-    # We need to filter based on the reservation date, so we filter the related reservations first
-    # Also filter equipment by the selected lab if applicable
+    # Equipment Usage Stats (Filtered)
     equipment_qs = Equipment.objects.all()
     if selected_lab_id:
         equipment_qs = equipment_qs.filter(lab_id=selected_lab_id)
 
+    # Note: Using Reservation.objects.all() as the base is required for the Count filter
     equipment_stats = equipment_qs.annotate(
-        total_uses=Count('reservations', filter=Q(reservations__in=reservations))
+        total_uses=Count('reservations', filter=Q(reservations__in=reservations)) 
     ).order_by('-total_uses')
 
-    # 4. Total stats (Filtered)
+    # Total stats (Filtered)
     total_reservations = reservations.count()
     
-    # Active labs count might change if filtered? Usually "Total Active Labs" implies system-wide,
-    # but in a report context, if we filter by 1 lab, maybe we show 1. 
-    # Let's keep it system-wide for context, unless filtered.
     if selected_lab_id:
         total_labs = 1 
     else:
         total_labs = Lab.objects.filter(is_active=True).count()
 
-    # Context Data
-    # Fetch all labs for the dropdown
-    all_labs = Lab.objects.filter(is_active=True)
 
-
-    # --- 3. RESOURCE GAP ANALYSIS (FIXED) ---
+    # --- 4. RESOURCE GAP ANALYSIS (FIXED DENSITY TO USE QUANTITY SUM) ---
     resource_gaps = []
     
-    # Annotate labs with equipment counts AND overdue counts
+    # Reservations for the fixed 30-day utilization check
+    recent_reservations_30days = Reservation.objects.filter(date__gte=timezone.now().date() - timedelta(days=30))
+    
+    # Annotate labs with equipment counts AND total OPERATIONAL quantity (FIXED)
     labs_data = Lab.objects.annotate(
         total_eq=Count('equipment'),
-        operational_eq=Count('equipment', filter=Q(equipment__is_operational=True)),
         broken_eq=Count('equipment', filter=Q(equipment__is_operational=False)),
-        
-        # FIX: Ensure we only count equipment where last_maintenance is NOT NULL, 
-        # and its date is less than sixty_days_ago.
         backlog_eq=Count('equipment', 
                          filter=Q(equipment__last_maintenance__isnull=False) & 
                                 Q(equipment__last_maintenance__lt=sixty_days_ago)
-                        )
-    )
+                        ),
+        # FIX: Calculate total QUANTITY of OPERATIONAL equipment
+        total_operational_quantity=Sum('equipment__quantity', filter=Q(equipment__is_operational=True))
+    ).order_by('name')
     
     # Calculate 30-day booking counts separately and merge
-    monthly_bookings = recent_reservations.values('lab__id').annotate(
-        booking_count=Count('id')
-    )
-    monthly_booking_map = {item['lab__id']: item['booking_count'] for item in monthly_bookings}
+    monthly_bookings_map = {
+        item['lab__id']: item['booking_count'] 
+        for item in recent_reservations_30days.values('lab__id').annotate(booking_count=Count('id'))
+    }
 
 
     for lab in labs_data:
+        # If a specific lab is selected, only run gap analysis for that lab
+        if selected_lab_id is not None and lab.id != selected_lab_id:
+            continue
+
         gaps_found = []
+        booking_count = monthly_bookings_map.get(lab.id, 0)
         
-        # Get 30-day booking count
-        booking_count = monthly_booking_map.get(lab.id, 0)
+        # FIX: Get the calculated total operational quantity
+        operational_quantity = lab.total_operational_quantity if lab.total_operational_quantity is not None else 0
 
         # Safety check: Avoid division by zero
         if lab.total_eq > 0:
             broken_pct = (lab.broken_eq / lab.total_eq) * 100
             backlog_pct = (lab.backlog_eq / lab.total_eq) * 100 
             
-            # 3A. Check Critical Maintenance Gap (Broken Equipment)
+            # 4A. Critical Maintenance Gap
             if broken_pct >= maintenance_threshold:
                 gaps_found.append({
                     'type': 'Critical Maintenance',
-                    'message': f"{round(broken_pct, 1)}% of equipment is broken ({lab.broken_eq}/{lab.total_eq} items).",
+                    'message': f"{round(broken_pct, 1)}% of equipment is broken ({lab.broken_eq}/{lab.total_eq} records).", # Changed to records for clarity
                     'severity': 'high'
                 })
 
-            # 3B. Check Maintenance Backlog Gap 
+            # 4B. Maintenance Backlog Gap 
             if backlog_pct >= maintenance_backlog_threshold:
                 gaps_found.append({
                     'type': 'Maintenance Backlog',
-                    'message': f"{round(backlog_pct, 1)}% of equipment ({lab.backlog_eq}/{lab.total_eq} items) is overdue for maintenance (> 60 days).",
+                    'message': f"{round(backlog_pct, 1)}% of equipment records ({lab.backlog_eq}/{lab.total_eq}) is overdue for maintenance (> 60 days).",
                     'severity': 'medium'
                 })
         
-        # 3C. Check Equipment Density Gap
-        if lab.capacity > 0 and lab.operational_eq > 0:
-            density = lab.operational_eq / lab.capacity
+        # 4C. Check Equipment Density Gap (FIXED TO USE QUANTITY)
+        if lab.capacity > 0 and operational_quantity > 0:
+            density = operational_quantity / lab.capacity
             if density < density_threshold:
                 gaps_found.append({
                     'type': 'Equipment Density',
-                    'message': f"Low ratio ({round(density, 2)}). Only {lab.operational_eq} operational items for {lab.capacity} capacity.",
+                    'message': f"Low ratio ({round(density, 2)}). Only {operational_quantity} operational units available for {lab.capacity} capacity.",
                     'severity': 'medium'
                 })
 
-        # 3D. Check Utilization Gaps (Over/Under)
+        # 4D. Check Utilization Gaps (Over/Under - uses 30-day count)
         if booking_count >= booking_threshold:
             gaps_found.append({
                 'type': 'Over-Utilization',
@@ -196,13 +195,15 @@ def dashboard(request):
                 'severity': 'low'
             })
 
-
-        # If any gaps were found, add to the list
         if gaps_found:
             resource_gaps.append({
                 'lab_name': lab.name,
                 'issues': gaps_found
             })
+
+
+    # Context Data
+    all_labs = Lab.objects.filter(is_active=True)
 
     context = {
         'lab_stats': lab_stats,
@@ -211,14 +212,18 @@ def dashboard(request):
         'total_reservations': total_reservations,
         'total_labs': total_labs,
         'resource_gaps': resource_gaps,
+        
+        # Thresholds passed to maintain form state
         'maintenance_threshold': maintenance_threshold,
         'booking_threshold': booking_threshold,
         'under_utilization_threshold': under_utilization_threshold,
         'density_threshold': density_threshold,
         'maintenance_backlog_threshold': maintenance_backlog_threshold,
-        'start_date': start_date,
-        'end_date': end_date,
+        
+        # Filtering variables passed to maintain form state
+        'start_date': start_date_raw,
+        'end_date': end_date_raw,
         'all_labs': all_labs,
-        'selected_lab_id': int(selected_lab_id) if selected_lab_id else None,
+        'selected_lab_id': selected_lab_id,
     }
     return render(request, 'analytics/dashboard.html', context)

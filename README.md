@@ -86,5 +86,5 @@ To test the application, you can use the following pre-configured accounts:
 
 | Role | Username | Password | Capabilities |
 | :--- | :--- | :--- | :--- |
-| **Administrator** | `admin` | `thebestadmin123` | Full access to Admin Panel, Lab Editing, Broadcasts & Approvals |
+| **Administrator** | `admin` | `admin123` | Full access to Admin Panel, Lab Editing, Broadcasts & Approvals |
 | **Student** | `student` | `ilikeicecream123` | Can Browse Labs, View Map, Book Slots & Receive Notifications |
