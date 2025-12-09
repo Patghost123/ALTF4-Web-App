@@ -5,20 +5,116 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ lab.name }} | STEM Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50 text-gray-800 font-sans">
-
-    <nav class="bg-white border-b border-gray-200 px-6 py-4 mb-8">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <a href="{% url 'home' %}" class="font-bold text-xl text-indigo-600">STEM Hub</a>
-            <a href="{% url 'labs:index' %}" class="text-sm text-gray-500 hover:text-indigo-600">&larr; Back to Map</a>
-        </div>
-    </nav>
-
-    <main class="max-w-6xl mx-auto px-6 pb-12">
+    <style>
+        /* --- Base Styles Matching Base.html (STANDARD) --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8">
+        body { 
+            background: #f4f6f9; 
+            color: #1f2937;
+            overflow-x: hidden;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        
+        /* --- Standard Layout Container (Max Width 6xl = 1152px) --- */
+        .standard-container {
+            max-width: 80rem; /* ~1280px */
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 1.5rem; /* px-6 */
+            padding-right: 1.5rem; /* px-6 */
+        }
+        
+        /* --- Header (STANDARD) --- */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1e293b;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        header .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 80rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2563eb;
+            letter-spacing: -0.5px;
+        }
+
+        nav { display: flex; gap: 2rem; align-items: center; }
+        nav a {
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: #64748b;
+            transition: color 0.3s;
+            white-space: nowrap;
+        }
+        nav a:hover { color: #2563eb; }
+
+        .logout-btn {
+            padding: 0.5rem 1.2rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .logout-btn:hover {
+            background: #eff6ff;
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+
+        @media (max-width: 640px) {
+            header { padding: 1rem 1rem; }
+            .standard-container { padding-left: 1rem; padding-right: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <h1><a href="/">STEM Hub</a></h1>
+            <nav>
+                <a href="{% url 'labs:index' %}">Map</a>
+                <a href="{% url 'reservations:timetable' %}">Calendar</a>
+                {% if not user.is_staff and not user.is_superuser %}
+                    <a href="{% url 'reservations:my_reservations' %}">My Reservations</a>
+                {% endif %}
+                {% if user.is_staff %}
+                    <a href="{% url 'reservations:dashboard' %}" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Admin Panel</a>
+                    <a href="/analytics/dashboard/" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Analytics</a>
+                    <a href="{% url 'notifications:create_announcement' %}" style="color: #2563eb; font-weight: bold; border: 1px solid #bfdbfe; padding: 0.25rem 0.75rem; border-radius: 9999px;">Broadcast</a>
+                {% endif %}
+                <a href="{% url 'logout' %}" class="logout-btn">Log Out</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="standard-container pb-12">
+        
+        <div class="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8">
             <div class="flex flex-col md:flex-row justify-between md:items-start gap-6">
                 
                 <div>
@@ -148,6 +244,11 @@
         </div>
 
     </main>
+
+    <!-- Footer (Standardized) -->
+    <footer>
+        <p>© 2025 STEM Hub | University Labs Management System</p>
+    </footer>
 
 </body>
 </html>
