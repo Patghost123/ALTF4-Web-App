@@ -24,7 +24,7 @@ def dashboard(request):
 
     # 3. Total stats
     total_reservations = Reservation.objects.count()
-    total_labs = Lab.objects.count()
+    total_labs = Lab.objects.filter(is_active=True).count()
 
     context = {
         'lab_stats': lab_stats,

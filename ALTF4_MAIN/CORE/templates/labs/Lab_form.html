@@ -1,197 +1,233 @@
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Lab: {{ lab.name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Ensures all input fields defined in forms.py are styled correctly */
+        input:not([type="checkbox"]), textarea, select {
+            /* Styles set here match those passed via attrs in forms.py */
+            @apply w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
 
-{% block content %}
-<main class="max-w-4xl mx-auto px-6 pb-12">
-    <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 mt-10">
-        <h1 class="text-3xl font-bold text-gray-900 mb-6">
-            {% if form.instance.pk %}
-                Edit Lab: {{ lab.name }}
-            {% else %}
-                Create New Lab
-            {% endif %}
-        </h1>
+    <!-- Navigation (Copied from map/detail view for consistency) -->
+    <nav class="bg-white border-b border-gray-200 px-6 py-4 mb-8 shadow-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <a href="{% url 'labs:index' %}" class="font-bold text-2xl text-indigo-600">STEM Hub</a>
+            <a href="{% url 'labs:detail' slug=lab.slug %}" class="text-sm text-gray-500 hover:text-indigo-600">&larr; Back to Lab Details</a>
+        </div>
+    </nav>
+    
+    <main class="max-w-4xl mx-auto px-6 pb-12">
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 mt-10">
+            <h1 class="text-3xl font-bold text-gray-900 mb-6">
+                {% if form.instance.pk %}
+                    Edit Lab: {{ lab.name }}
+                {% else %}
+                    Create New Lab
+                {% endif %}
+            </h1>
 
-        <form method="post" class="space-y-8" enctype="multipart/form-data">
-            {% csrf_token %}
-            
-            <h2 class="text-xl font-semibold text-indigo-700 border-b pb-2">Primary Lab Details</h2>
-            
-            <!-- 1. MAIN LAB FORM (Capacity, Description, Status) -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {% for field in form %}
-                    <div class="field-wrapper {% if field.field.widget.input_type == 'textarea' %}md:col-span-2{% endif %}">
-                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                            {{ field.label }}
-                        </label>
-                        {{ field }}
-                        {% if field.errors %}
-                            {% for error in field.errors %}
-                                <p class="text-red-500 text-xs mt-1">{{ error }}</p>
-                            {% endfor %}
-                        {% endif %}
-                        {% if field.help_text %}
-                            <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </div>
-
-            <h2 class="text-xl font-semibold text-indigo-700 border-b pb-2 pt-4 flex justify-between items-center">
-                Equipment Inventory
-                <button type="button" id="add-equipment-btn" class="text-sm text-green-600 hover:text-green-800 font-medium px-3 py-1 rounded bg-green-50 shadow-sm">
-                    + Add Equipment
-                </button>
-            </h2>
-
-            <!-- 2. EQUIPMENT FORMSET (Add/Edit/Delete multiple related objects) -->
-            <div id="equipment-formset-container" class="space-y-6">
+            <form method="post" class="space-y-8" enctype="multipart/form-data">
+                {% csrf_token %}
                 
-                {{ formset.management_form }} 
-
-                {% for equipment_form in formset %}
-                <div class="equipment-form p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50">
-                    <h3 class="font-medium text-gray-800 mb-3">Item #{{ forloop.counter }}</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {% for field in equipment_form.visible_fields %}
-                            <div class="field-wrapper">
-                                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                    {{ field.label }}
-                                </label>
+                <h2 class="text-xl font-semibold text-indigo-700 border-b pb-2">Primary Lab Details</h2>
+                
+                <!-- 1. MAIN LAB FORM (Capacity, Description, Status) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {% for field in form %}
+                        <div class="field-wrapper {% if field.field.widget.input_type == 'textarea' %}md:col-span-2{% endif %}">
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                {{ field.label }}
+                            </label>
+                            
+                            <!-- Renders field using classes defined in labs/forms.py -->
+                            {% if field.field.widget.input_type == 'checkbox' %}
+                                <div class="mt-2">{{ field }}</div>
+                            {% else %}
                                 {{ field }}
+                            {% endif %}
+                            
+                            {% if field.errors %}
                                 {% for error in field.errors %}
                                     <p class="text-red-500 text-xs mt-1">{{ error }}</p>
                                 {% endfor %}
-                            </div>
-                        {% endfor %}
-                    </div>
+                            {% endif %}
+                            {% if field.help_text %}
+                                <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
 
-                    <!-- Hidden fields (ID, DELETE) -->
-                    {% for field in equipment_form.hidden_fields %}
-                        {{ field }}
+                <h2 class="text-xl font-semibold text-indigo-700 border-b pb-2 pt-4 flex justify-between items-center">
+                    Equipment Inventory
+                    <button type="button" id="add-equipment-btn" class="text-sm text-green-600 hover:text-green-800 font-medium px-3 py-1 rounded bg-green-50 shadow-sm">
+                        + Add Equipment
+                    </button>
+                </h2>
+
+                <!-- 2. EQUIPMENT FORMSET (Add/Edit/Delete multiple related objects) -->
+                <div id="equipment-formset-container" class="space-y-6">
+                    
+                    {{ formset.management_form }} 
+
+                    {% for equipment_form in formset %}
+                    <div class="equipment-form p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50">
+                        <h3 class="font-medium text-gray-800 mb-3">Item #{{ forloop.counter }}</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {% for field in equipment_form.visible_fields %}
+                                <div class="field-wrapper">
+                                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                        {{ field.label }}
+                                    </label>
+                                    
+                                    {% if field.field.widget.input_type == 'checkbox' %}
+                                        <div class="mt-2">{{ field }}</div>
+                                    {% else %}
+                                        {{ field }}
+                                    {% endif %}
+
+                                    {% for error in field.errors %}
+                                        <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Hidden fields (ID, DELETE) -->
+                        {% for field in equipment_form.hidden_fields %}
+                            {{ field }}
+                        {% endfor %}
+
+                        <div class="mt-3 flex items-center justify-end">
+                            <!-- Simplified Removal: This button handles deletion for existing or new forms -->
+                             <button type="button" class="remove-form-btn px-3 py-1 text-xs font-medium text-red-600 border border-red-300 rounded hover:bg-red-50 transition shadow-sm">
+                                Remove Item
+                            </button>
+                        </div>
+
+                    </div>
                     {% endfor %}
 
-                    <div class="mt-3 flex items-center justify-end">
-                        <!-- Simplified Removal: This button handles deletion for existing or new forms -->
-                         <button type="button" class="remove-form-btn px-3 py-1 text-xs font-medium text-red-600 border border-red-300 rounded hover:bg-red-50 transition">
-                            Remove Item
-                        </button>
+                    <!-- Empty Form Template (Must be outside the loop and hidden) -->
+                    <div id="empty-form" style="display: none;">
+                        {% include 'labs/equipment_form_template.html' with form=formset.empty_form %}
                     </div>
 
                 </div>
-                {% endfor %}
-
-                <!-- Empty Form Template (Must be outside the loop and hidden) -->
-                <div id="empty-form" style="display: none;">
-                    {% include 'labs/equipment_form_template.html' with form=formset.empty_form %}
+                
+                <!-- 3. ACTION BUTTONS -->
+                <div class="pt-4 border-t border-gray-100 flex justify-end gap-3">
+                    <a href="{% url 'labs:detail' slug=lab.slug %}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 shadow-sm">
+                        Cancel (Go Back)
+                    </a>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition shadow-md">
+                        Save All Changes
+                    </button>
                 </div>
-
-            </div>
+            </form>
+        </div>
+    </main>
+    <script>
+        // Javascript for dynamic formset management (Adding and removing new equipment rows)
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('equipment-formset-container');
+            const addButton = document.getElementById('add-equipment-btn');
+            const totalForms = document.getElementById('id_{{ formset.prefix }}-TOTAL_FORMS');
+            const emptyFormTemplate = document.getElementById('empty-form').innerHTML;
             
-            <!-- 3. ACTION BUTTONS -->
-            <div class="pt-4 border-t border-gray-100 flex justify-end gap-3">
-                <a href="{% url 'labs:detail' slug=lab.slug %}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
-                    Cancel (Go Back)
-                </a>
-                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition">
-                    Save All Changes
-                </button>
-            </div>
-        </form>
-    </div>
-</main>
-<script>
-    // Javascript for dynamic formset management (Adding and removing new equipment rows)
-    document.addEventListener('DOMContentLoaded', function() {
-        const container = document.getElementById('equipment-formset-container');
-        const addButton = document.getElementById('add-equipment-btn');
-        const totalForms = document.getElementById('id_{{ formset.prefix }}-TOTAL_FORMS');
-        const emptyFormTemplate = document.getElementById('empty-form').innerHTML;
-        
-        let formCount = parseInt(totalForms.value);
+            let formCount = parseInt(totalForms.value);
 
-        // Function to update item numbering when forms are added/removed
-        function updateFormIndexes() {
-            const forms = container.querySelectorAll('.equipment-form');
-            forms.forEach((form, index) => {
-                const header = form.querySelector('h3');
-                if (header) {
-                    header.innerText = `Item #${index + 1}`; 
+            // Function to update item numbering when forms are added/removed
+            function updateFormIndexes() {
+                const forms = container.querySelectorAll('.equipment-form');
+                forms.forEach((form, index) => {
+                    const header = form.querySelector('h3');
+                    if (header) {
+                        header.innerText = `Item #${index + 1}`; 
+                    }
+                });
+            }
+            
+            // --- ADD BUTTON LOGIC ---
+            addButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 1. Generate new form HTML
+                const newFormHtml = emptyFormTemplate.replace(/__prefix__/g, formCount);
+                
+                // 2. Create wrapper and insert HTML
+                const newForm = document.createElement('div');
+                newForm.className = 'equipment-form p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50 mt-4';
+                newForm.innerHTML = newFormHtml;
+
+                // 3. Prepend header
+                const header = document.createElement('h3');
+                header.className = 'font-medium text-gray-800 mb-3';
+                newForm.prepend(header); 
+
+                // 4. Attach removal listener
+                const removeBtn = newForm.querySelector('.remove-form-btn');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', handleRemoveForm);
                 }
+
+                // 5. Append to container
+                container.appendChild(newForm);
+
+                // 6. Update counts
+                formCount++;
+                totalForms.value = formCount;
+                updateFormIndexes();
             });
-        }
-        
-        // --- ADD BUTTON LOGIC ---
-        addButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // 1. Generate new form HTML
-            const newFormHtml = emptyFormTemplate.replace(/__prefix__/g, formCount);
-            
-            // 2. Create wrapper and insert HTML
-            const newForm = document.createElement('div');
-            newForm.className = 'equipment-form p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50 mt-4';
-            newForm.innerHTML = newFormHtml;
 
-            // 3. Prepend header
-            const header = document.createElement('h3');
-            header.className = 'font-medium text-gray-800 mb-3';
-            newForm.prepend(header); 
-
-            // 4. Attach removal listener
-            const removeBtn = newForm.querySelector('.remove-form-btn');
-            if (removeBtn) {
-                removeBtn.addEventListener('click', handleRemoveForm);
+            // --- REMOVE BUTTON LOGIC ---
+            function handleRemoveForm(e) {
+                e.preventDefault();
+                const formToRemove = e.target.closest('.equipment-form');
+                if (formToRemove) {
+                    // Find the hidden DELETE checkbox within the form
+                    const deleteInput = formToRemove.querySelector('input[name$="-DELETE"]');
+                    
+                    if (deleteInput && deleteInput.value !== 'on') {
+                        // This is an EXISTING form, so we mark it for deletion and hide it visually.
+                        deleteInput.checked = true;
+                        formToRemove.style.display = 'none'; 
+                        // Do NOT decrement formCount for existing items (Django needs the count to remain correct)
+                    } else if (deleteInput && deleteInput.value === 'on') {
+                        // This is a NEWLY ADDED form (no PK), so we remove it completely.
+                        formToRemove.remove();
+                        
+                        // Decrement totalForms count and re-index the visual headers
+                        formCount--;
+                        totalForms.value = formCount;
+                        updateFormIndexes();
+                    } else {
+                        // Fallback for truly new forms
+                        formToRemove.remove();
+                        formCount--;
+                        totalForms.value = formCount;
+                        updateFormIndexes();
+                    }
+                }
             }
 
-            // 5. Append to container
-            container.appendChild(newForm);
+            // Attach listener to all existing "Remove Item" buttons on load
+            document.querySelectorAll('.remove-form-btn').forEach(btn => {
+                btn.addEventListener('click', handleRemoveForm);
+            });
 
-            // 6. Update counts
-            formCount++;
-            totalForms.value = formCount;
+            // Initial setup for existing forms
             updateFormIndexes();
         });
-
-        // --- REMOVE BUTTON LOGIC ---
-        function handleRemoveForm(e) {
-            e.preventDefault();
-            const formToRemove = e.target.closest('.equipment-form');
-            if (formToRemove) {
-                // Find the hidden DELETE checkbox within the form
-                const deleteInput = formToRemove.querySelector('input[name$="-DELETE"]');
-                
-                if (deleteInput && deleteInput.value !== 'on') {
-                    // This is an EXISTING form, so we mark it for deletion and hide it visually.
-                    deleteInput.checked = true;
-                    // Visually hide the row
-                    formToRemove.style.display = 'none'; 
-                    // We DO NOT decrement formCount here because Django expects the total count to remain 
-                    // accurate for the management_form when marking existing rows for deletion.
-                } else if (deleteInput && deleteInput.value === 'on') {
-                    // This is a NEWLY ADDED form (which doesn't have a PK yet), so we remove it completely.
-                    formToRemove.remove();
-                    // Decrement totalForms count and re-index the visual headers
-                    formCount--;
-                    totalForms.value = formCount;
-                    updateFormIndexes();
-                } else {
-                    // Fallback for truly new forms that somehow don't have the DELETE input (shouldn't happen)
-                    formToRemove.remove();
-                    formCount--;
-                    totalForms.value = formCount;
-                    updateFormIndexes();
-                }
-            }
-        }
-
-        // Attach listener to all existing "Remove Item" buttons on load
-        document.querySelectorAll('.remove-form-btn').forEach(btn => {
-            btn.addEventListener('click', handleRemoveForm);
-        });
-
-        // Initial setup for existing forms
-        updateFormIndexes();
-    });
-</script>
-{% endblock content %}
+    </script>
+</body>
+</html>
