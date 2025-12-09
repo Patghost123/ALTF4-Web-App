@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
  
   <style>
-    /* --- Reset & Base Styles --- */
+    /* --- Base Variables & Global Styles (STANDARD) --- */
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
    
     body {
@@ -18,12 +18,21 @@
 
     a { text-decoration: none; color: inherit; }
     ul { list-style: none; }
+    
+    /* --- Standard Layout Container (Max Width 7xl = 1280px or 6xl for main content area) --- */
+    .standard-container {
+        max-width: 80rem; /* ~1280px */
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 1.5rem; /* px-6 */
+        padding-right: 1.5rem; /* px-6 */
+    }
 
-    /* --- Glassmorphism Header --- */
+    /* --- Header (STANDARD) --- */
     header {
       background: rgba(255, 255, 255, 0.95);
       color: #1e293b;
-      padding: 1rem 5%;
+      padding: 1rem 5%; /* Adjusted to match padding of body sections */
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -34,6 +43,16 @@
       backdrop-filter: blur(10px);
     }
    
+    header .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        max-width: 80rem; /* Standard max-width for internal content */
+        margin-left: auto;
+        margin-right: auto;
+    }
+
     header h1 {
       font-size: 1.5rem;
       font-weight: 700;
@@ -47,6 +66,7 @@
       font-size: 0.95rem;
       color: #64748b;
       transition: color 0.3s;
+      white-space: nowrap;
     }
     nav a:hover { color: #2563eb; }
    
@@ -57,6 +77,7 @@
       border-radius: 2rem;
       font-size: 0.9rem;
       transition: all 0.3s;
+      white-space: nowrap;
     }
     .logout-btn:hover {
       background: #eff6ff;
@@ -64,7 +85,7 @@
       color: #2563eb;
     }
 
-    /* --- Notification Bell & Dropdown CSS --- */
+    /* --- Notification Bell & Dropdown CSS (RETAINED) --- */
     .notif-container {
       position: relative;
       margin-left: 0.5rem;
@@ -125,7 +146,6 @@
       overflow-y: auto;
     }
 
-    /* --- Dynamic Notification Colors (Dropdown) --- */
     .notif-item {
       padding: 0.8rem 1rem;
       border-bottom: 1px solid #e2e8f0;
@@ -156,8 +176,7 @@
     }
     .notif-item .mark-read:hover { color: #2563eb; }
 
-
-    /* --- Hero Section --- */
+    /* --- Hero Section (REVERTED TO WIDER WIDTH) --- */
     .hero {
       background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
       color: white;
@@ -165,6 +184,7 @@
       padding: 5rem 2rem;
       margin: 2rem auto;
       width: 90%;
+      /* Removed max-width: 70rem to make it wider */
       border-radius: 1.5rem;
       box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
       position: relative;
@@ -217,7 +237,7 @@
       background: rgba(255,255,255,0.3);
     }
 
-    /* --- Section Headings --- */
+    /* --- Section Headings (RETAINED) --- */
     .section-title {
       padding: 0 5%;
       margin-bottom: 1.5rem;
@@ -237,7 +257,7 @@
       border-radius: 3px;
     }
 
-    /* --- Lab Cards --- */
+    /* --- Lab Cards (RETAINED) --- */
     .labs {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -284,7 +304,6 @@
       font-weight: 500;
     }
 
-    /* --- Buttons Container & Styling --- */
     .lab-actions {
       display: flex;
       gap: 0.5rem;
@@ -302,13 +321,13 @@
       transition: all 0.2s;
     }
 
-    .btn-book { background: #2563eb; color: white; border: none; }
+    .btn-book { background: #2563eb; color: white; border: none; display: flex; align-items: center; justify-content: center;}
     .btn-book:hover { background: #1d4ed8; }
     .btn-map { background: white; color: #2563eb; border: 1px solid #2563eb; display: flex; align-items: center; justify-content: center; }
     .btn-map:hover { background: #eff6ff; }
 
 
-    /* --- NEW NOTIFICATIONS SECTION STYLES --- */
+    /* --- NEW NOTIFICATIONS SECTION STYLES (RETAINED) --- */
     .notifications-wrapper {
       padding: 0 5%;
       margin-bottom: 4rem;
@@ -323,7 +342,6 @@
     .notifications h2 { margin-bottom: 1.5rem; font-size: 1.2rem; color: #1e293b; }
     .notifications ul { list-style: none; padding: 0; }
     
-    /* Main List Item Style */
     .update-item {
       padding: 1rem;
       margin-bottom: 0.8rem;
@@ -339,7 +357,6 @@
     }
     .update-item:hover { transform: translateX(5px); }
 
-    /* Color Coding Logic */
     .update-item.warning {
         border-left-color: #ef4444; /* Red */
         background: #fef2f2;
@@ -363,7 +380,7 @@
         font-weight: 500;
     }
 
-    /* --- Footer --- */
+    /* --- Footer (RETAINED) --- */
     footer {
       background: #0f172a;
       color: #94a3b8;
@@ -372,7 +389,7 @@
       font-size: 0.9rem;
     }
 
-    /* --- Modal --- */
+    /* --- Modal (RETAINED) --- */
     .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); justify-content:center; align-items:center; z-index: 2000; }
     .modal-content {
       background: white;
@@ -406,56 +423,64 @@
       color: #64748b;
       margin-left: 0.5rem;
     }
+    
+    @media (max-width: 640px) {
+        header { padding: 1rem 1rem; }
+        .hero { padding: 3rem 1rem; margin: 1rem 1rem; width: auto; }
+        .labs, .notifications-wrapper { padding: 0 1rem; }
+    }
   </style>
 </head>
 <body>
 
   <header>
-    <h1><a href="/">STEM Hub</a></h1>
-    <nav>
-      <a href="{% url 'labs:index' %}">Map</a>
-      <a href="{% url 'reservations:timetable' %}">Calendar</a>        
-      {% if not user.is_staff and not user.is_superuser %}
-          <a href="{% url 'reservations:my_reservations' %}">My Reservations</a>
-      {% endif %}    
-      {% if user.is_staff %}
-        <a href="{% url 'reservations:dashboard' %}" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Admin Panel</a>
-        <a href="/analytics/dashboard/" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Analytics</a>
-        <a href="{% url 'notifications:create_announcement' %}" style="color: #2563eb; font-weight: bold; border: 1px solid #bfdbfe; padding: 0.25rem 0.75rem; border-radius: 9999px;">Broadcast</a>
-      {% endif %}
+    <div class="header-content">
+        <h1><a href="/">STEM Hub</a></h1>
+        <nav>
+          <a href="{% url 'labs:index' %}">Map</a>
+          <a href="{% url 'reservations:timetable' %}">Calendar</a>        
+          {% if not user.is_staff and not user.is_superuser %}
+              <a href="{% url 'reservations:my_reservations' %}">My Reservations</a>
+          {% endif %}    
+          {% if user.is_staff %}
+            <a href="{% url 'reservations:dashboard' %}" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Admin Panel</a>
+            <a href="/analytics/dashboard/" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Analytics</a>
+            <a href="{% url 'notifications:create_announcement' %}" style="color: #2563eb; font-weight: bold; border: 1px solid #bfdbfe; padding: 0.25rem 0.75rem; border-radius: 9999px;">Broadcast</a>
+          {% endif %}
 
-      {% if user.is_authenticated %}
-      <div class="notif-container" onclick="toggleNotif()">
-        <span class="bell-icon">🔔</span> 
-        
-        {% if unread_count > 0 %}
-            <span class="badge">{{ unread_count }}</span>
-        {% endif %}
+          {% if user.is_authenticated %}
+          <div class="notif-container" onclick="toggleNotif()">
+            <span class="bell-icon">🔔</span> 
+            
+            {% if unread_count > 0 %}
+                <span class="badge">{{ unread_count }}</span>
+            {% endif %}
 
-        <div class="notif-dropdown" id="notifDropdown">
-            <div class="notif-header">
-                Notifications
-                <span style="font-size:0.8rem; color:#64748b;">{{ unread_count|default:"0" }} New</span>
-            </div>
-            <div class="notif-list">
-                {% if notifications_list %}
-                    {% for notif in notifications_list %}
-                        <div class="notif-item {{ notif.notification_type }}">
-                            <span>{{ notif.message }}</span>
-                            <a href="{% url 'notifications:mark_read' notif.id %}" class="mark-read" title="Mark as read">✔</a>
+            <div class="notif-dropdown" id="notifDropdown">
+                <div class="notif-header">
+                    Notifications
+                    <span style="font-size:0.8rem; color:#64748b;">{{ unread_count|default:"0" }} New</span>
+                </div>
+                <div class="notif-list">
+                    {% if notifications_list %}
+                        {% for notif in notifications_list %}
+                            <div class="notif-item {{ notif.notification_type }}">
+                                <span>{{ notif.message }}</span>
+                                <a href="{% url 'notifications:mark_read' notif.id %}" class="mark-read" title="Mark as read">✔</a>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="notif-item" style="justify-content: center; color: #94a3b8; border-left: 4px solid #e2e8f0;">
+                            No new notifications
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="notif-item" style="justify-content: center; color: #94a3b8; border-left: 4px solid #e2e8f0;">
-                        No new notifications
-                    </div>
-                {% endif %}
+                    {% endif %}
+                </div>
             </div>
-        </div>
-      </div>
-      {% endif %}
-      <a href="{% url 'logout' %}" class="logout-btn">Log Out</a>
-    </nav>
+          </div>
+          {% endif %}
+          <a href="{% url 'logout' %}" class="logout-btn">Log Out</a>
+        </nav>
+    </div>
   </header>
 
   <section class="hero">
@@ -490,7 +515,8 @@
                         </div>
                         
                         <div class="lab-actions">
-                            <button class="btn-book" onclick="openModal('Reserve {{ lab.name|escapejs }}?')">Book Slot</button>
+                            <!-- Updated button logic to use lab.id for reservation link -->
+                            <a href="{% url 'reservations:make_reservation' lab_id=lab.id %}" class="btn-book">Book Slot</a>
                             <a href="{% url 'labs:index' %}" class="btn-map">View in Map</a>
                         </div>
                     </div>
@@ -541,7 +567,8 @@
     <div class="modal-content" id="modal-content">
       <h3>Modal Title</h3>
       <p style="color: #64748b; margin-bottom: 1.5rem;">Confirm your action below.</p>
-      <button onclick="alert('Confirmed!')">Confirm</button>
+      <!-- Replaced alert() with a link for better UX in this context -->
+      <a href="{% url 'reservations:timetable' %}" class="btn-book">View Calendar to Book</a> 
       <button class="close-btn" onclick="closeModal()">Close</button>
     </div>
   </div>
@@ -551,6 +578,7 @@
     const modal = document.getElementById('modal');
     const modalContent = document.getElementById('modal-content');
 
+    // Function updated to redirect to booking page
     function openModal(msg){
       modal.style.display = 'flex';
       modalContent.querySelector('h3').innerText = msg;

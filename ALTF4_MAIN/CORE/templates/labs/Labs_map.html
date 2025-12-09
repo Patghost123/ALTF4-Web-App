@@ -5,10 +5,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>STEM Lab Hub | Facility Map</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- MAP INTERACTIVITY STYLES --- */
+        /* --- Base Styles Matching Base.html (STANDARD) --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         
+        body { 
+            background: #f4f6f9; 
+            color: #1f2937;
+            overflow-x: hidden;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        
+        /* --- Standard Layout Container (Max Width 6xl = 1152px) --- */
+        .standard-container {
+            max-width: 80rem; /* ~1280px */
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 1.5rem; /* px-6 */
+            padding-right: 1.5rem; /* px-6 */
+        }
+        
+        /* --- Header (STANDARD) --- */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1e293b;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        header .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 80rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2563eb;
+            letter-spacing: -0.5px;
+        }
+
+        nav { display: flex; gap: 2rem; align-items: center; }
+        nav a {
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: #64748b;
+            transition: color 0.3s;
+            white-space: nowrap;
+        }
+        nav a:hover { color: #2563eb; }
+
+        .logout-btn {
+            padding: 0.5rem 1.2rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .logout-btn:hover {
+            background: #eff6ff;
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+        
+        /* --- MAP INTERACTIVITY STYLES (RETAINED) --- */
         [id^="stem_lab_"] {
             cursor: pointer;
             transition: all 0.3s ease;
@@ -57,36 +134,46 @@
             #lab-sidebar {
                 width: 100%;
             }
+            .standard-container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans">
+<body class="text-gray-800 font-sans">
 
-    <nav class="bg-white border-b border-gray-200 px-6 py-4 mb-8 shadow-md">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <a href="{% url 'home' %}" class="font-bold text-xl text-indigo-600 flex items-center gap-2">STEM Hub</a>
-            <div class="space-x-4">
+    <!-- Navigation (Standardized Header) -->
+    <header>
+        <div class="header-content">
+            <h1><a href="/">STEM Hub</a></h1>
+            <nav>
+                <a href="{% url 'labs:index' %}" style="color: #2563eb; font-weight: bold;">Map</a>
+                <a href="{% url 'reservations:timetable' %}">Calendar</a>
                 {% if not user.is_staff and not user.is_superuser %}
-                    <a href="{% url 'reservations:my_reservations' %}" class="text-gray-500 hover:text-indigo-600 transition hidden sm:block">My Reservations</a>
+                    <a href="{% url 'reservations:my_reservations' %}">My Reservations</a>
                 {% endif %}
-                {% if user.is_staff %} 
-                <a href="/analytics/dashboard/" class="text-sm text-gray-600 hover:text-indigo-600">Analytics</a>
-                <a href="{% url 'reservations:dashboard' %}" class="text-sm text-red-600 hover:text-indigo-600">Admin Panel</a>
+                {% if user.is_staff %}
+                    <a href="{% url 'reservations:dashboard' %}" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Admin Panel</a>
+                    <a href="/analytics/dashboard/" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Analytics</a>
+                    <a href="{% url 'notifications:create_announcement' %}" style="color: #2563eb; font-weight: bold; border: 1px solid #bfdbfe; padding: 0.25rem 0.75rem; border-radius: 9999px;">Broadcast</a>
                 {% endif %}
-            </div>
+                <a href="{% url 'logout' %}" class="logout-btn">Log Out</a>
+            </nav>
         </div>
-    </nav>
+    </header>
 
-    <main class="max-w-6xl mx-auto px-6 pb-12">
-        <div class="text-center mb-10">
+    <main class="standard-container pb-12">
+        <div class="text-center mb-10 mt-8">
             <h1 class="text-3xl font-bold text-gray-900">Live Facility Map</h1>
             <p class="text-gray-600 mt-2">Real-time status of all labs and workshops.</p>
-            <p class="text-gray-600">Click on a lab to view it.</p>
+            <p class="text-gray-600">Click on a lab to view details and reservation options.</p>
         </div>
 
         <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
             
-            <div class="flex justify-center gap-6 mb-6 text-sm font-medium">
+            <!-- Legend -->
+            <div class="flex justify-center flex-wrap gap-6 mb-6 text-sm font-medium">
                 <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-green-500"></div> Available</div>
                 <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full" style="background:#F59E0B !important;"></div>Unavailable / Maintenance</div>
             </div>
@@ -98,6 +185,7 @@
         </div>
     </main>
 
+    <!-- LAB DETAIL SIDEBAR (RETAINED) -->
     <div id="lab-sidebar" class="bg-white p-6 flex flex-col justify-between" style="display: none;">
         <div>
             <div class="flex justify-between items-center mb-6">
@@ -128,6 +216,7 @@
             "{{ lab.map_svg_id }}": { 
                 name: "{{ lab.name|escapejs }}", 
                 slug: "{{ lab.slug|escapejs }}", 
+                id: {{ lab.id }}, /* Added ID for reservation link */
                 capacity: {{ lab.capacity }}, 
                 description: "{{ lab.description|escapejs }}",
                 isActive: {{ lab.is_active|yesno:"true,false" }},
@@ -141,6 +230,7 @@
         };
 
         // 2. DB STATUS INJECTION (Used for initial coloring and sidebar logic)
+        // This variable is redundant if we use LAB_DATA directly, but keep for robustness
         const DB_STATUS = {
             {% for lab in labs %}
                 "{{ lab.map_svg_id }}": {{ lab.is_active|yesno:"true,false" }},
@@ -172,17 +262,21 @@
             if (isActive === false) {
                 statusBadge = '<span class="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs font-semibold">Maintenance / Unavailable</span>';
                 
-                button.classList.remove('hidden'); 
-                button.textContent = "View Lab Only"; 
-                message.classList.add('hidden'); 
-                button.href = `/labs/${data.slug}/`; 
+                // --- FIX: Allow Viewing, but direct booking link to the Lab Detail Page ---
+                button.classList.remove('hidden'); // Show button
+                button.textContent = "View Lab Details"; // Change button text
+                message.classList.add('hidden'); // Hide red error message
+                button.href = `/labs/${data.slug}/`; // Link to detail page
+                // --- END FIX ---
             } else {
-                statusBadge = '<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-semibold">Available</span>';
+                // AVAILABLE
+                statusBadge = '<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-semibold">Available for Booking</span>';
                 
                 button.classList.remove('hidden');
-                button.textContent = "View Lab & Make Reservation"; 
+                button.textContent = "Make Reservation"; 
                 message.classList.add('hidden');
-                button.href = `/labs/${data.slug}/`; 
+                // Link directly to reservation page using Lab ID
+                button.href = `/reservations/reserve/${data.id}/`; 
             }
             
             // Displays count of distinct item types as a placeholder
@@ -205,6 +299,7 @@
                         <span>${data.equipment_type_count} ${equipmentText}</span>
                     </div>
                     <p class="text-sm text-gray-600 leading-relaxed">${data.description}</p>
+                    <a href="/labs/${data.slug}/" class="text-sm text-indigo-600 font-medium hover:text-indigo-800">View Equipment & Guidelines &rarr;</a>
                 </div>
             `;
 

@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from labs.models import Lab
+from labs.models import Lab, Equipment
 
 class Reservation(models.Model):
     STATUS_CHOICES = [
@@ -11,6 +11,9 @@ class Reservation(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     lab = models.ForeignKey(Lab, on_delete=models.CASCADE) 
+    # New field for equipment selection
+    equipment = models.ManyToManyField(Equipment, blank=True, related_name='reservations')
+    
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()

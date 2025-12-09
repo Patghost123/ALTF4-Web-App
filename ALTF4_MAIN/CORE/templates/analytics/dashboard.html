@@ -39,6 +39,10 @@
         .grid > div { 
             width: 100% !important;
             margin-bottom: 20px;
+            body { background-color: white; }
+            .shadow-sm { box-shadow: none !important; border: 1px solid #ddd; }
+            /* Ensure page breaks don't cut tables in half */
+            table, tr, td, th, div { page-break-inside: avoid; }
         }
     </style>
 </head>
@@ -62,6 +66,52 @@
         <div class="mb-8 text-center hidden" id="report-header">
             <h2 class="text-3xl font-bold text-slate-900">Lab Usage & Resource Gap Report</h2>
             <p class="text-slate-500 text-sm mt-1">Generated on {% now "F j, Y" %}</p>
+            {% if start_date or end_date or selected_lab_id %}
+            <div class="text-slate-500 text-xs mt-2 flex flex-col gap-1 items-center">
+                {% if selected_lab_id %}
+                    <span class="font-semibold bg-indigo-50 px-2 py-1 rounded text-indigo-700">
+                        Target Lab: {% for lab in all_labs %}{% if lab.id == selected_lab_id %}{{ lab.name }}{% endif %}{% endfor %}
+                    </span>
+                {% endif %}
+                <span>Period: {{ start_date|default:"Start" }} to {{ end_date|default:"Present" }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Filter Form -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8 no-print" data-html2canvas-ignore="true">
+            <form method="get" class="flex flex-wrap items-end gap-4">
+                
+                <!-- Lab Filter -->
+                <div class="w-full md:w-auto flex-grow md:flex-grow-0 md:min-w-[200px]">
+                    <label for="lab_id" class="block text-xs font-bold text-slate-500 uppercase mb-1">Target Lab</label>
+                    <select name="lab_id" id="lab_id" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-indigo-500 bg-white">
+                        <option value="">All Laboratories</option>
+                        {% for lab in all_labs %}
+                            <option value="{{ lab.id }}" {% if selected_lab_id == lab.id %}selected{% endif %}>{{ lab.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Date Filters -->
+                <div>
+                    <label for="start_date" class="block text-xs font-bold text-slate-500 uppercase mb-1">From Date</label>
+                    <input type="date" name="start_date" id="start_date" value="{{ start_date }}" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="end_date" class="block text-xs font-bold text-slate-500 uppercase mb-1">To Date</label>
+                    <input type="date" name="end_date" id="end_date" value="{{ end_date }}" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-indigo-500">
+                </div>
+                
+                <!-- Actions -->
+                <button type="submit" class="px-4 py-2 bg-slate-800 text-white text-sm font-medium rounded-lg hover:bg-slate-900 transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                    Filter Data
+                </button>
+                {% if start_date or end_date or selected_lab_id %}
+                    <a href="{% url 'analytics:dashboard' %}" class="px-4 py-2 bg-gray-100 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-200 transition">Clear</a>
+                {% endif %}
+            </form>
         </div>
 
         <div class="mb-8 bg-white p-6 rounded-xl shadow-sm border border-slate-200 no-print" data-html2canvas-ignore="true">
@@ -111,10 +161,12 @@
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <p class="text-sm font-medium text-slate-500 uppercase">Total Reservations (30 Days)</p>
                 <p class="text-3xl font-bold text-indigo-600 mt-2">{{ total_reservations }}</p>
+                {% if start_date %}<p class="text-xs text-slate-400 mt-1">in selected period</p>{% endif %}
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <p class="text-sm font-medium text-slate-500 uppercase">Active Labs</p>
                 <p class="text-3xl font-bold text-green-600 mt-2">{{ total_labs }}</p>
+                {% if selected_lab_id %}<p class="text-xs text-slate-400 mt-1">Filtered View</p>{% endif %}
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                 <p class="text-sm font-medium text-slate-500 uppercase">Critical Gaps Identified</p>
@@ -155,6 +207,16 @@
         {% endif %}
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <p class="text-sm font-medium text-slate-500 uppercase">Equipment Utilization</p>
+                <!-- Calculate total usage across all items for a summary stat if desired, currently showing distinct items -->
+                <p class="text-3xl font-bold text-amber-500 mt-2">{{ equipment_stats.count }} Items</p>
+                <p class="text-xs text-slate-400 mt-1">tracked in report scope</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
+            
+            <!-- LAB POPULARITY TABLE -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden break-inside-avoid">
                 <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
                     <h3 class="font-bold text-lg text-slate-800">Lab Usage Stats (30 Days)</h3>
@@ -176,6 +238,8 @@
                                 </span>
                             </td>
                         </tr>
+                        {% empty %}
+                        <tr><td colspan="2" class="px-6 py-4 text-center text-slate-500">No data available for this period.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -205,11 +269,47 @@
                                 </span>
                             </td>
                         </tr>
+                        {% empty %}
+                        <tr><td colspan="2" class="px-6 py-4 text-center text-slate-500">No data available for this period.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
+
+        <!-- NEW: EQUIPMENT USAGE TABLE (Full Width) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden break-inside-avoid">
+            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                <h3 class="font-bold text-lg text-slate-800">Equipment Usage Statistics</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-semibold">
+                        <tr>
+                            <th class="px-6 py-3">Equipment Name</th>
+                            <th class="px-6 py-3">Serial Number</th>
+                            <th class="px-6 py-3 text-right">Times Reserved</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for item in equipment_stats %}
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-6 py-4 font-medium text-slate-900">{{ item.name }}</td>
+                            <td class="px-6 py-4 text-slate-500 font-mono text-xs">{{ item.serial_number }}</td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="bg-amber-100 text-amber-800 py-1 px-3 rounded-full text-xs font-bold">
+                                    {{ item.total_uses }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="px-6 py-4 text-center text-slate-500">No equipment usage data available.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </main>
 
     <script>
@@ -222,11 +322,12 @@
             var today = new Date().toISOString().slice(0, 10);
 
             var opt = {
-                margin:       0.5,
-                filename:     `STEM_Hub_Analytics_Report_${today}.pdf`,
+                margin:       [0.3, 0.3], // Reduced margins
+                filename:     'STEM_Hub_Analytics_Report.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 3, useCORS: true }, 
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // Better page breaking
             };
 
             html2pdf().set(opt).from(element).save().then(function(){

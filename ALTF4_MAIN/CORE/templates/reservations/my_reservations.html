@@ -13,7 +13,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* --- Base Styles --- */
+        /* --- Base Styles Matching Base.html (STANDARD) --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         
         body { 
@@ -26,55 +26,74 @@
         }
 
         a { text-decoration: none; color: inherit; }
-
-        /* --- Header --- */
-        header { 
-            background: rgba(255, 255, 255, 0.95); 
-            color: #1e293b; 
-            padding: 1rem 5%; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
+        ul { list-style: none; }
+        
+        /* --- Standard Layout Container (Max Width 6xl = 1152px) --- */
+        .standard-container {
+            max-width: 80rem; /* ~1280px */
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 1.5rem; /* px-6 */
+            padding-right: 1.5rem; /* px-6 */
+        }
+        
+        /* --- Header (STANDARD) --- */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            color: #1e293b;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             position: sticky;
             top: 0;
-            z-index: 50;
+            z-index: 1000;
             backdrop-filter: blur(10px);
         }
-        
-        header h1 { 
-            font-size: 1.5rem; 
-            font-weight: 700; 
-            color: #2563eb; 
+
+        header .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 80rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2563eb;
             letter-spacing: -0.5px;
         }
 
         nav { display: flex; gap: 2rem; align-items: center; }
-        
-        nav a { 
-            font-weight: 500; 
-            font-size: 0.95rem; 
-            color: #64748b; 
-            transition: color 0.3s; 
+        nav a {
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: #64748b;
+            transition: color 0.3s;
+            white-space: nowrap;
         }
-        
         nav a:hover { color: #2563eb; }
-        
+
         .logout-btn {
             padding: 0.5rem 1.2rem;
             border: 1px solid #e2e8f0;
             border-radius: 2rem;
             font-size: 0.9rem;
             transition: all 0.3s;
+            white-space: nowrap;
         }
-        
         .logout-btn:hover {
             background: #eff6ff;
             border-color: #2563eb;
             color: #2563eb;
         }
 
-        /* --- Footer --- */
+        /* --- Footer (STANDARD) --- */
         footer { 
             background: #0f172a; 
             color: #94a3b8; 
@@ -83,28 +102,38 @@
             font-size: 0.9rem;
             margin-top: auto;
         }
+        
+        @media (max-width: 640px) {
+            header { padding: 1rem 1rem; }
+            .standard-container { padding-left: 1rem; padding-right: 1rem; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Navigation -->
+    <!-- Navigation (Standardized Header) -->
     <header>
-        <h1><a href="/">STEM Hub</a></h1>
-        <nav>
-            <a href="{% url 'labs:index' %}">Labs</a>
-            <a href="{% url 'reservations:timetable' %}">Calendar</a>
-            
-            {% if user.is_staff %}
-                <a href="{% url 'reservations:dashboard' %}" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Admin Panel</a>
-            {% endif %}
-            
-            <!-- UPDATED LOGOUT LINK -->
-            <a href="{% url 'logout' %}" class="logout-btn">Log Out</a>
-        </nav>
+        <div class="header-content">
+            <h1><a href="/">STEM Hub</a></h1>
+            <nav>
+                <a href="{% url 'labs:index' %}">Map</a>
+                <a href="{% url 'reservations:timetable' %}">Calendar</a>
+                
+                <a href="{% url 'reservations:my_reservations' %}" style="color: #2563eb; font-weight: bold;">My Reservations</a>
+                
+                {% if user.is_staff %}
+                    <a href="{% url 'reservations:dashboard' %}" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Admin Panel</a>
+                    <a href="/analytics/dashboard/" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Analytics</a>
+                    <a href="{% url 'notifications:create_announcement' %}" style="color: #2563eb; font-weight: bold; border: 1px solid #bfdbfe; padding: 0.25rem 0.75rem; border-radius: 9999px;">Broadcast</a>
+                {% endif %}
+                
+                <a href="{% url 'logout' %}" class="logout-btn">Log Out</a>
+            </nav>
+        </div>
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-5xl mx-auto w-full px-6 py-10">
+    <main class="standard-container w-full py-10">
         
         <!-- Page Header -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
