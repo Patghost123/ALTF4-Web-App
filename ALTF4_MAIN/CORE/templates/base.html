@@ -5,14 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>STEM Hub | Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-  
+ 
   <style>
     /* --- Reset & Base Styles --- */
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-    
-    body { 
-      /* Matches a common soft login background */
-      background: #f4f6f9; 
+   
+    body {
+      background: #f4f6f9;
       color: #333;
       overflow-x: hidden;
     }
@@ -21,37 +20,37 @@
     ul { list-style: none; }
 
     /* --- Glassmorphism Header --- */
-    header { 
-      background: rgba(255, 255, 255, 0.95); 
-      color: #1e293b; 
-      padding: 1rem 5%; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
+    header {
+      background: rgba(255, 255, 255, 0.95);
+      color: #1e293b;
+      padding: 1rem 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
       position: sticky;
       top: 0;
       z-index: 1000;
       backdrop-filter: blur(10px);
     }
-    
-    header h1 { 
-      font-size: 1.5rem; 
-      font-weight: 700; 
+   
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
       color: #2563eb; /* Primary Brand Color */
       letter-spacing: -0.5px;
     }
 
     nav { display: flex; gap: 2rem; align-items: center; }
-    nav a { 
-      font-weight: 500; 
-      font-size: 0.95rem; 
-      color: #64748b; 
-      transition: color 0.3s; 
+    nav a {
+      font-weight: 500;
+      font-size: 0.95rem;
+      color: #64748b;
+      transition: color 0.3s;
     }
     nav a:hover { color: #2563eb; }
-    
-    /* Logout button style to look like a secondary action */
+   
+    /* Logout button style */
     .logout-btn {
       padding: 0.5rem 1.2rem;
       border: 1px solid #e2e8f0;
@@ -65,21 +64,20 @@
       color: #2563eb;
     }
 
-    /* --- Hero Section (Dashboard Welcome) --- */
-    .hero { 
-      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); 
+    /* --- Hero Section --- */
+    .hero {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
       color: white;
-      text-align: center; 
-      padding: 5rem 2rem; 
+      text-align: center;
+      padding: 5rem 2rem;
       margin: 2rem auto;
       width: 90%;
-      border-radius: 1.5rem; 
+      border-radius: 1.5rem;
       box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
       position: relative;
       overflow: hidden;
     }
-    
-    /* Decorative circle in hero */
+   
     .hero::before {
       content: '';
       position: absolute;
@@ -93,36 +91,36 @@
 
     .hero h1 { font-size: 2.5rem; margin-bottom: 1rem; font-weight: 700; }
     .hero p { font-size: 1.1rem; margin-bottom: 2rem; opacity: 0.9; font-weight: 300; }
-    
+   
     .hero-buttons { display: flex; gap: 1rem; justify-content: center; }
 
-    .hero button { 
-      padding: 0.9rem 2rem; 
-      border: none; 
-      border-radius: 3rem; 
-      cursor: pointer; 
-      font-weight: 600; 
+    .hero button {
+      padding: 0.9rem 2rem;
+      border: none;
+      border-radius: 3rem;
+      cursor: pointer;
+      font-weight: 600;
       font-size: 1rem;
-      transition: transform 0.2s, box-shadow 0.2s; 
+      transition: transform 0.2s, box-shadow 0.2s;
     }
-    
-    .hero .view-labs { 
-      background: white; 
-      color: #2563eb; 
+   
+    .hero .view-labs {
+      background: white;
+      color: #2563eb;
     }
-    .hero .view-labs:hover { 
-      transform: translateY(-2px); 
-      box-shadow: 0 4px 12px rgba(255,255,255,0.3); 
+    .hero .view-labs:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255,255,255,0.3);
     }
-    
-    .hero .reserve-now { 
-      background: rgba(255,255,255,0.2); 
-      color: white; 
+   
+    .hero .reserve-now {
+      background: rgba(255,255,255,0.2);
+      color: white;
       border: 1px solid rgba(255,255,255,0.3);
       backdrop-filter: blur(5px);
     }
-    .hero .reserve-now:hover { 
-      background: rgba(255,255,255,0.3); 
+    .hero .reserve-now:hover {
+      background: rgba(255,255,255,0.3);
     }
 
     /* --- Section Headings --- */
@@ -146,38 +144,45 @@
     }
 
     /* --- Lab Cards --- */
-    .labs { 
-      display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-      gap: 2rem; 
+    .labs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
       padding: 0 5%;
       margin-bottom: 4rem;
     }
-    
-    .lab-card { 
-      background: white; 
-      border-radius: 1rem; 
-      overflow: hidden; 
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); 
-      transition: all 0.3s ease; 
+   
+    .lab-card {
+      background: white;
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      transition: all 0.3s ease;
       border: 1px solid #f1f5f9;
+      display: flex;
+      flex-direction: column; /* Ensures content stretches */
     }
-    
-    .lab-card:hover { 
-      transform: translateY(-5px); 
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); 
+   
+    .lab-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
-    
+   
     .lab-card img { width: 100%; height: 200px; object-fit: cover; }
-    
-    .lab-card .content { padding: 1.5rem; }
+   
+    .lab-card .content { 
+      padding: 1.5rem; 
+      display: flex; 
+      flex-direction: column; 
+      flex-grow: 1; 
+    }
     .lab-card h3 { font-size: 1.25rem; margin-bottom: 0.5rem; color: #1e293b; }
     .lab-card p { font-size: 0.9rem; color: #64748b; margin-bottom: 0.5rem; line-height: 1.5; }
-    
+   
     .lab-meta {
       display: flex;
       justify-content: space-between;
-      margin-top: 1rem;
+      margin-top: auto; /* Pushes meta to bottom of text area */
       padding-top: 1rem;
       border-top: 1px solid #f1f5f9;
       font-size: 0.85rem;
@@ -185,36 +190,60 @@
       font-weight: 500;
     }
 
-    .lab-card button { 
-      width: 100%;
+    /* --- Buttons Container & Styling --- */
+    .lab-actions {
+      display: flex;
+      gap: 0.5rem;
       margin-top: 1.2rem;
-      background: #2563eb; 
-      color: white; 
-      padding: 0.8rem; 
-      border: none; 
-      border-radius: 0.5rem; 
-      cursor: pointer; 
-      font-weight: 600;
-      transition: background 0.2s; 
     }
-    .lab-card button:hover { background: #1d4ed8; }
+
+    .lab-actions button, .lab-actions a {
+      flex: 1; /* Makes buttons equal width */
+      padding: 0.8rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    /* Primary Button (Book Slot) */
+    .btn-book {
+      background: #2563eb;
+      color: white;
+      border: none;
+    }
+    .btn-book:hover { background: #1d4ed8; }
+
+    /* Secondary Button (View in Map) */
+    .btn-map {
+      background: white;
+      color: #2563eb;
+      border: 1px solid #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-map:hover { background: #eff6ff; }
+
 
     /* --- Notifications --- */
     .notifications-wrapper {
       padding: 0 5%;
       margin-bottom: 4rem;
     }
-    .notifications { 
-      background: #fffbeb; 
+    .notifications {
+      background: #fffbeb;
       border-left: 5px solid #f59e0b;
-      padding: 1.5rem 2rem; 
-      border-radius: 0.5rem; 
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
+      padding: 1.5rem 2rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
     }
     .notifications h2 { margin-bottom: 1rem; font-size: 1.2rem; color: #92400e; }
     .notifications ul { list-style: none; padding: 0; }
-    .notifications li { 
-      margin-bottom: 0.8rem; 
+    .notifications li {
+      margin-bottom: 0.8rem;
       display: flex;
       align-items: center;
       gap: 0.5rem;
@@ -229,41 +258,41 @@
     }
 
     /* --- Footer --- */
-    footer { 
-      background: #0f172a; 
-      color: #94a3b8; 
-      text-align: center; 
-      padding: 2rem; 
+    footer {
+      background: #0f172a;
+      color: #94a3b8;
+      text-align: center;
+      padding: 2rem;
       font-size: 0.9rem;
     }
 
     /* --- Modal --- */
     .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); justify-content:center; align-items:center; z-index: 2000; }
-    .modal-content { 
-      background: white; 
-      padding: 2.5rem; 
-      border-radius: 1rem; 
-      width: 90%; 
-      max-width: 400px; 
-      text-align: center; 
+    .modal-content {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 1rem;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
       animation: fadeIn 0.3s ease;
     }
-    
+   
     @keyframes fadeIn {
       from { opacity: 0; transform: scale(0.9); }
       to { opacity: 1; transform: scale(1); }
     }
 
     .modal-content h3 { margin-bottom: 1.5rem; color: #1e293b; }
-    .modal-content button { 
-      margin-top: 1rem; 
-      background: #2563eb; 
-      color: white; 
-      padding: 0.8rem 2rem; 
-      border: none; 
-      border-radius: 0.5rem; 
-      cursor: pointer; 
+    .modal-content button {
+      margin-top: 1rem;
+      background: #2563eb;
+      color: white;
+      padding: 0.8rem 2rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
       font-weight: 600;
     }
     .modal-content button.close-btn {
@@ -293,7 +322,7 @@
   </header>
 
   <section class="hero">
-    <h1>Welcome back, {{ user.username }}</h1>
+    <h1>Welcome back, {{ user.first_name|default:"Student" }}</h1>
     <p>Your academic dashboard for labs, equipment, and resources.</p>
     <div class="hero-buttons">
       <button class="view-labs" onclick="scrollToLabs()">Browse Labs</button>
@@ -302,8 +331,41 @@
   </section>
 
   <div class="section-title">Available Facilities</div>
+  
   <section class="labs" id="labs">
-    </section>
+    {% if labs %}
+        {% for lab in labs %}
+            {% if lab.is_active %}
+                <div class="lab-card">
+                    {% if lab.image %}
+                        <img src="{{ lab.image.url }}" alt="{{ lab.name }}">
+                    {% else %}
+                        <img src="https://placehold.co/600x400/2563eb/FFF?text={{ lab.name|urlencode }}" alt="{{ lab.name }}">
+                    {% endif %}
+
+                    <div class="content">
+                        <h3>{{ lab.name }}</h3>
+                        <p>{{ lab.description|truncatewords:20 }}</p>
+                        
+                        <div class="lab-meta">
+                            <span>Cap: {{ lab.capacity }} students</span>
+                            <span>{{ lab.equipment.count|default:"0" }} items</span>
+                        </div>
+                        
+                        <div class="lab-actions">
+                            <button class="btn-book" onclick="openModal('Reserve {{ lab.name|escapejs }}?')">Book Slot</button>
+                            <a href="{% url 'labs:index' %}" class="btn-map">View in Map</a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <div style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 2rem;">
+            <p>No available labs found.</p>
+        </div>
+    {% endif %}
+  </section>
 
   <div class="section-title">Updates & Alerts</div>
   <section class="notifications-wrapper">
@@ -328,37 +390,12 @@
   </div>
 
   <script>
-    // --- Mock Lab Data with Fixed Images ---
-    const labs = [
-      {id:1, name:"Physics Lab", desc:"High-velocity mechanics and optics experiments.", cap:20, equipment:["Oscilloscope", "Lasers"], img:"https://placehold.co/600x400/2563eb/FFF?text=Physics+Lab"},
-      {id:2, name:"Chemistry Lab", desc:"Organic synthesis and titration stations.", cap:25, equipment:["Bunsen Burners", "Centrifuge"], img:"https://placehold.co/600x400/059669/FFF?text=Chemistry+Lab"},
-      {id:3, name:"Robotics Lab", desc:"Autonomous systems and Arduino prototyping.", cap:15, equipment:["3D Printers", "Soldering Iron"], img:"https://placehold.co/600x400/dc2626/FFF?text=Robotics+Lab"}
-    ];
-
+    // --- Mock Notifications ---
     const notifications = [
       "Physics Lab maintenance scheduled for 12 Dec, 2 PM",
       "Robotics Lab is fully booked for the current week",
       "New shipment of Chemicals arrived in Lab 2"
     ];
-
-    // --- Inject Lab Cards ---
-    const labsContainer = document.getElementById('labs');
-    labs.forEach(lab => {
-      labsContainer.innerHTML += `
-        <div class="lab-card">
-          <img src="${lab.img}" alt="${lab.name}">
-          <div class="content">
-            <h3>${lab.name}</h3>
-            <p>${lab.desc}</p>
-            <div class="lab-meta">
-                <span>Cap: ${lab.cap} students</span>
-                <span>${lab.equipment.length} items</span>
-            </div>
-            <button onclick="openModal('Reserve ${lab.name}?')">Book Slot</button>
-          </div>
-        </div>
-      `;
-    });
 
     // --- Inject Notifications ---
     const notifContainer = document.getElementById('notifications-list');
@@ -378,7 +415,7 @@
     function closeModal(){
       modal.style.display = 'none';
     }
-    
+   
     // --- Scroll to Labs ---
     function scrollToLabs(){
       document.getElementById('labs').scrollIntoView({behavior:'smooth'});
