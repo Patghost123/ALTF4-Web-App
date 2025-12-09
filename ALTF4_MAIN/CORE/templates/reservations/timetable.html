@@ -117,7 +117,36 @@
         @media (max-width: 640px) {
             header { padding: 1rem 1rem; }
             .standard-container { padding-left: 1rem; padding-right: 1rem; }
-            .fc-header-toolbar { flex-direction: column; align-items: flex-start; }
+            
+            /* Mobile Navigation: Make links wrap or stack */
+            header .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            nav {
+                width: 100%;
+                margin-top: 0.5rem;
+                overflow-x: auto; 
+                white-space: nowrap;
+                gap: 1rem;
+            }
+            nav a { font-size: 0.8rem; }
+            .logout-btn { font-size: 0.8rem; padding: 0.3rem 0.8rem; }
+
+            /* Calendar adjustments for mobile */
+            .fc-header-toolbar { 
+                flex-direction: column; 
+                align-items: flex-start; 
+            }
+            .fc-toolbar-chunk {
+                width: 100%;
+                justify-content: space-between;
+                margin-bottom: 0.5rem;
+            }
+            .fc-toolbar-chunk:last-child {
+                justify-content: flex-start;
+                margin-bottom: 0;
+            }
             .fc-toolbar-title { margin-bottom: 0.5rem; }
         }
     </style>
@@ -151,15 +180,17 @@
     <main class="flex-grow">
         <!-- Main content wrapper uses the standardized container class -->
         <div class="standard-container py-8">
+            <!-- UPDATED: Added flex-col on small screen for stacking -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-4">
                 <div>
                     <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Lab Schedule</h1>
                     <p class="text-sm text-gray-500 mt-1">Select a lab below to enable booking.</p>
                 </div>
                 
+                <!-- UPDATED: Filter form uses w-full on mobile -->
                 <form method="get" class="w-full sm:w-auto bg-white px-3 py-2 rounded-xl shadow-sm border border-gray-200 flex items-center gap-2">
-                    <label for="lab" class="text-xs font-bold text-gray-500 uppercase">Filter:</label>
-                    <div class="relative flex-grow sm:flex-grow-0">
+                    <label for="lab" class="text-xs font-bold text-gray-500 uppercase flex-shrink-0">Filter:</label>
+                    <div class="relative flex-grow">
                         <select name="lab" id="lab" onchange="this.form.submit()" 
                                 class="w-full sm:w-48 appearance-none bg-transparent font-medium text-sm text-gray-800 focus:outline-none cursor-pointer pr-6">
                             <option value="">All Labs (View Only)</option>
@@ -204,7 +235,7 @@
             
             <div class="mt-6 flex justify-center sm:justify-end">
                 <button onclick="handleManualBooking()" 
-                   class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 px-6 rounded-full shadow-md transition hover:-translate-y-0.5">
+                   class="w-full sm:w-auto flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 px-6 rounded-full shadow-md transition hover:-translate-y-0.5">
                     <svg class="mr-2 -ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     <span>New Reservation</span>
                 </button>
@@ -230,7 +261,7 @@
                  labSelect.style.borderColor = 'red'; 
                  labSelect.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.2)';
             }
-            alert("Please select a specific Lab from the filter menu above to make a reservation."); 
+            alert("Please select a specific Lab from the filter menu above to make a reservation.");
         } else {
             // New URL Pattern: /reservations/reserve/<id>/
             window.location.href = `/reservations/reserve/${selectedLabId}/`;
@@ -244,7 +275,8 @@
             eventUrl += "?lab_id=" + selectedLabId;
         }
 
-        var initialViewType = window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek';
+        // Use 'timeGridDay' on smaller screens for better density
+        var initialViewType = window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek'; 
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: initialViewType,
