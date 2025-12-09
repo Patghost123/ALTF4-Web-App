@@ -37,33 +37,25 @@ Managing high-demand laboratories (Physics, Robotics, Chemistry) and specialized
 
 ## Installation & Setup
 
-1.  **Clone the repository**
-    ```bash
-    git clone [https://github.com/yourusername/stem-hub.git](https://github.com/yourusername/stem-hub.git)
-    cd stem-hub
-    ```
-
-2.  **Create a Virtual Environment**
-    ```bash
-    python -m venv venv
-    # Windows
-    venv\Scripts\activate
-    # Mac/Linux
-    source venv/bin/activate
-    ```
-
-3.  **Install Dependencies**
+1.  **Install Dependencies**
     ```bash
     pip install django
     ```
 
-4.  **Run Migrations**
+2.  **Clone the repository**
+    ```bash
+    git clone https://github.com/Patghost123/ALTF4-Web-App.git
+    cd ALTF4-Web-App
+    cd ALTF4_MAIN
+    ```
+
+3.  **Run Migrations**
     ```bash
     python manage.py makemigrations
     python manage.py migrate
     ```
 
-6.  **Run the Server**
+4.  **Run the Server**
     ```bash
     python manage.py runserver
     ```
