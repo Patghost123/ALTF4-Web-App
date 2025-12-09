@@ -5,134 +5,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab Availability | STEM Hub</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <style>
-        /* --- Base Styles Matching Base.html (STANDARD) --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        
-        body { 
-            background: #f4f6f9; 
-            color: #1f2937;
-            overflow-x: hidden;
-        }
-
-        a { text-decoration: none; color: inherit; }
-        ul { list-style: none; }
-        
-        /* --- Standard Layout Container (Max Width 6xl = 1152px) --- */
-        .standard-container {
-            max-width: 80rem; /* ~1280px */
-            margin-left: auto;
-            margin-right: auto;
-            padding-left: 1.5rem; /* px-6 */
-            padding-right: 1.5rem; /* px-6 */
-        }
-        
-        /* --- Header (STANDARD) --- */
-        header {
-            background: rgba(255, 255, 255, 0.95);
-            color: #1e293b;
-            padding: 1rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-        }
-
-        header .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 80rem;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        header h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #2563eb;
-            letter-spacing: -0.5px;
-        }
-
-        nav { display: flex; gap: 2rem; align-items: center; }
-        nav a {
-            font-weight: 500;
-            font-size: 0.95rem;
-            color: #64748b;
-            transition: color 0.3s;
-            white-space: nowrap;
-        }
-        nav a:hover { color: #2563eb; }
-
-        .logout-btn {
-            padding: 0.5rem 1.2rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 2rem;
-            font-size: 0.9rem;
-            transition: all 0.3s;
-            white-space: nowrap;
-        }
-        .logout-btn:hover {
-            background: #eff6ff;
-            border-color: #2563eb;
-            color: #2563eb;
-        }
-
-        /* --- FullCalendar Overrides (RETAINED/ADJUSTED) --- */
         .fc { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.85rem; }
         .fc-header-toolbar { margin-bottom: 1rem !important; flex-wrap: wrap; gap: 0.5rem; }
         .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700; }
         .fc-button-primary { background-color: white !important; color: #374151 !important; border-color: #e5e7eb !important; font-weight: 600 !important; padding: 0.35rem 0.75rem !important; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important; }
         .fc-button-primary:hover { background-color: #f9fafb !important; color: #111827 !important; }
         .fc-button-active { background-color: #eef2ff !important; color: #4f46e5 !important; border-color: #c7d2fe !important; }
-        .fc-timegrid-slot { height: 2.5rem !important; } 
-        .fc-event { border-radius: 4px; border: none; padding: 1px 3px; font-size: 0.75rem; font-weight: 500; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        .fc-timegrid-slot { height: 3rem !important; } /* Increased height for better readability */
+        .fc-event { 
+            border-radius: 4px; 
+            border: none; 
+            padding: 2px 4px; 
+            font-size: 0.75rem; 
+            font-weight: 500; 
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); 
+            transition: transform 0.1s ease-in-out;
+        }
+        .fc-event:hover {
+            transform: scale(1.02);
+            z-index: 50 !important;
+        }
         .fc-theme-standard td, .fc-theme-standard th { border-color: #f3f4f6; }
         .fc-day-today { background-color: #fafafe !important; }
         .fc-day-sat, .fc-day-sun { background-color: #fff1f2 !important; }
         .fc-scroller::-webkit-scrollbar { width: 6px; }
         .fc-scroller::-webkit-scrollbar-thumb { background-color: #e5e7eb; border-radius: 99px; }
-
-        @media (max-width: 640px) {
-            header { padding: 1rem 1rem; }
-            .standard-container { padding-left: 1rem; padding-right: 1rem; }
-            .fc-header-toolbar { flex-direction: column; align-items: flex-start; }
-            .fc-toolbar-title { margin-bottom: 0.5rem; }
+        
+        /* Event content styling */
+        .fc-event-main {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
     </style>
 </head>
-<body class="text-gray-800 font-sans min-h-screen flex flex-col">
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
 
-    <!-- Navigation (Standardized Header) -->
-    <header>
-        <div class="header-content">
-            <h1><a href="/">STEM Hub</a></h1>
-            <nav>
-                <a href="{% url 'labs:index' %}">Map</a>
-                <a href="{% url 'reservations:timetable' %}" style="color: #2563eb; font-weight: bold;">Calendar</a>
+    <nav class="bg-white border-b border-gray-200 px-4 md:px-6 py-3 shadow-sm z-20 sticky top-0">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <a href="/" class="font-bold text-xl text-indigo-600 flex items-center gap-2">
+                <span>STEM Hub</span>
+            </a>
+            <div class="flex items-center gap-4 text-sm font-medium">
                 {% if not user.is_staff and not user.is_superuser %}
-                    <a href="{% url 'reservations:my_reservations' %}">My Reservations</a>
+                    <a href="{% url 'reservations:my_reservations' %}" class="text-gray-500 hover:text-indigo-600 transition hidden sm:block">My Reservations</a>
                 {% endif %}
-                {% if user.is_staff %}
-                    <a href="{% url 'reservations:dashboard' %}" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Admin Panel</a>
-                    <a href="/analytics/dashboard/" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Analytics</a>
-                    <a href="{% url 'notifications:create_announcement' %}" style="color: #2563eb; font-weight: bold; border: 1px solid #bfdbfe; padding: 0.25rem 0.75rem; border-radius: 9999px;">Broadcast</a>
-                {% endif %}
-                <a href="{% url 'logout' %}" class="logout-btn">Log Out</a>
-            </nav>
+                <a href="{% url 'labs:index' %}" class="text-gray-500 hover:text-indigo-600 transition hidden sm:block">Map</a>
+                <div class="text-indigo-600 font-semibold">Calendar</div>
+            </div>
         </div>
-    </header>
+    </nav>
 
     <main class="flex-grow">
-        <div class="standard-container py-8">
+        <div class="max-w-5xl mx-auto px-4 py-8">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-6 gap-4">
                 <div>
                     <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Lab Schedule</h1>
@@ -159,8 +90,8 @@
             </div>
 
             <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                <div class="bg-gray-50 border-b border-gray-100 px-4 py-2 flex flex-wrap justify-between items-center text-xs gap-3">
-                     <div class="flex flex-wrap gap-4">
+                <div class="bg-gray-50 border-b border-gray-100 px-4 py-2 flex justify-between items-center text-xs">
+                     <div class="flex gap-4">
                          <!-- Confirmed: Green -->
                          <div class="flex items-center gap-1.5">
                              <span class="w-2.5 h-2.5 rounded-full bg-green-600"></span>
@@ -185,20 +116,14 @@
             </div>
             
             <div class="mt-6 flex justify-center sm:justify-end">
-                <!-- Replaced alert() with modal or better UX -->
                 <button onclick="handleManualBooking()" 
                    class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2.5 px-6 rounded-full shadow-md transition hover:-translate-y-0.5">
-                    <svg class="mr-2 -ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     <span>New Reservation</span>
                 </button>
             </div>
         </div>
     </main>
-    
-    <!-- Footer (Standardized) -->
-    <footer>
-        <p>© 2025 STEM Hub | University Labs Management System</p>
-    </footer>
 
 <script>
     // Store the ID for the currently selected lab
@@ -206,15 +131,7 @@
 
     function handleManualBooking() {
         if (!selectedLabId) {
-            // Replaced alert with a cleaner message that provides an action
-            const labSelect = document.getElementById('lab');
-            if (labSelect) {
-                 labSelect.focus();
-                 labSelect.style.borderColor = 'red'; // Highlight the dropdown
-                 labSelect.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.2)';
-            }
-            // Use window.alert() as fallback since the prompt explicitly asked to avoid alert for MODALS
-            alert("Please select a specific Lab from the filter menu above to make a reservation."); 
+            alert("Please select a specific Lab from the filter menu above to make a reservation.");
         } else {
             // New URL Pattern: /reservations/reserve/<id>/
             window.location.href = `/reservations/reserve/${selectedLabId}/`;
@@ -243,7 +160,18 @@
             eventColor: '#4f46e5', 
             eventTextColor: '#ffffff',
             nowIndicator: true,
-            navLinks: true, 
+            navLinks: true,
+            
+            // --- CLEANUP SETTINGS ---
+            slotEventOverlap: false,  // Prevents events from stacking on top of each other
+            dayMaxEvents: true,       // Collapses events into "more" link in month view if too many
+            eventDisplay: 'block',    // Modern block style
+            eventTimeFormat: {        // Simplified time format
+                hour: '2-digit',
+                minute: '2-digit',
+                meridiem: false
+            },
+            // ------------------------
             
             dateClick: function(info) {
                 let dateObj = info.date;
@@ -260,18 +188,6 @@
                     return;
                 }
 
-                // Check for past time/date
-                const now = new Date();
-                const clickedDateTime = info.date;
-
-                if (clickedDateTime < now) {
-                    // Only alert if the user clicks a past time/slot in TimeGrid views
-                    if (info.view.type.includes('timeGrid')) {
-                        alert("You cannot book a time slot in the past.");
-                        return;
-                    }
-                }
-                
                 // Construct specific URL using Lab ID
                 let year = dateObj.getFullYear();
                 let month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -288,16 +204,14 @@
             },
 
             eventClick: function(info) {
-                // Modified to show more contextually appropriate alert (if needed, this can be converted to a Modal)
-                alert('Reservation Details:\nLab: ' + info.event.title + '\nTime: ' + info.event.start.toLocaleTimeString() + ' - ' + info.event.end.toLocaleTimeString());
+                alert('Booked by: ' + info.event.title);
             },
             
             windowResize: function(view) {
-                // Ensure calendar re-renders correctly on resize for mobile responsiveness
                 if (window.innerWidth < 768) {
-                    if (calendar.view.type !== 'timeGridDay') calendar.changeView('timeGridDay');
+                    calendar.changeView('timeGridDay');
                 } else {
-                    if (calendar.view.type !== 'timeGridWeek') calendar.changeView('timeGridWeek');
+                    calendar.changeView('timeGridWeek');
                 }
             }
         });
