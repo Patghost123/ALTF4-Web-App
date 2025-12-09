@@ -13,6 +13,7 @@
         form input[type="date"],
         form input[type="time"],
         form input[type="datetime-local"],
+        form input[type="number"],
         form select,
         form textarea {
             display: block;
@@ -35,15 +36,14 @@
         }
 
         /* Calendar Overrides for Compact View */
-        .fc { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.7rem; } /* Slightly smaller font */
+        .fc { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.7rem; } 
         .fc-header-toolbar { margin-bottom: 0.5rem !important; flex-wrap: wrap; gap: 0.25rem; }
-        .fc-toolbar-title { font-size: 0.9rem !important; font-weight: 700; } /* Smaller title */
+        .fc-toolbar-title { font-size: 0.9rem !important; font-weight: 700; } 
         .fc-button-primary { background-color: white !important; color: #374151 !important; border-color: #e5e7eb !important; padding: 0.15rem 0.4rem !important; font-size: 0.75rem !important; }
         .fc-button-active { background-color: #eef2ff !important; color: #4f46e5 !important; border-color: #c7d2fe !important; }
-        .fc-timegrid-slot { height: 1.5rem !important; } /* Reduced slot height */
+        .fc-timegrid-slot { height: 1.5rem !important; } 
         .fc-event { border-radius: 2px; border: none; padding: 0 2px; font-size: 0.65rem; }
         
-        /* Custom scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #c7c7c7; border-radius: 3px; }
@@ -109,24 +109,32 @@
                                 </div>
                             </div>
 
-                            <!-- EQUIPMENT SELECTION (New Feature) -->
+                            <!-- EQUIPMENT SELECTION (Custom Render for Quantity) -->
                             <div class="border-t border-gray-100 pt-4 mt-4">
-                                <label class="block text-sm font-bold text-gray-800 mb-2">Required Equipment</label>
-                                <p class="text-xs text-gray-500 mb-3">Select the items you need for your session. Availability will be verified upon submission.</p>
+                                <label class="block text-sm font-bold text-gray-800 mb-2">Required Equipment & Quantity</label>
+                                <p class="text-xs text-gray-500 mb-3">Select items and specify how many you need (Max: Total lab inventory).</p>
                                 
-                                <div class="max-h-48 overflow-y-auto custom-scrollbar border border-gray-200 rounded-lg p-3 bg-gray-50">
-                                    {% for checkbox in form.equipment %}
-                                    <div class="flex items-center mb-2 last:mb-0">
-                                        <!-- Render the checkbox input -->
+                                <div class="max-h-64 overflow-y-auto custom-scrollbar border border-gray-200 rounded-lg bg-gray-50">
+                                    {% for item in form.fields.equipment.queryset %}
+                                    <div class="flex items-center justify-between p-3 border-b border-gray-200 last:border-0 hover:bg-white transition">
                                         <div class="flex items-center h-5">
-                                            {{ checkbox.tag }}
+                                            <input type="checkbox" name="equipment" value="{{ item.id }}" id="eq_{{ item.id }}" 
+                                                   class="form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 transition duration-150 ease-in-out"
+                                                   onchange="toggleQuantityInput({{ item.id }})">
+                                            <label for="eq_{{ item.id }}" class="ml-3 text-sm text-gray-700 cursor-pointer select-none">
+                                                <span class="font-medium">{{ item.name }}</span>
+                                                <span class="text-xs text-gray-500 block">Total Stock: {{ item.quantity }}</span>
+                                            </label>
                                         </div>
-                                        <label for="{{ checkbox.id_for_label }}" class="ml-2 text-sm text-gray-700 cursor-pointer select-none">
-                                            {{ checkbox.choice_label }}
-                                        </label>
+                                        
+                                        <div class="w-20">
+                                            <input type="number" name="quantity_{{ item.id }}" id="qty_{{ item.id }}" 
+                                                   min="1" max="{{ item.quantity }}" value="1" disabled
+                                                   class="text-xs p-1 h-8 text-center border-gray-300 rounded focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-400">
+                                        </div>
                                     </div>
                                     {% empty %}
-                                        <p class="text-sm text-gray-500 italic">No special equipment available for this lab.</p>
+                                        <div class="p-4 text-center text-sm text-gray-500 italic">No special equipment available for this lab.</div>
                                     {% endfor %}
                                 </div>
                                 {% if form.equipment.errors %}
@@ -173,6 +181,20 @@
     </main>
 
     <script>
+        function toggleQuantityInput(id) {
+            const checkbox = document.getElementById('eq_' + id);
+            const qtyInput = document.getElementById('qty_' + id);
+            
+            if (checkbox.checked) {
+                qtyInput.disabled = false;
+                // Only focus if the user clicked (we'll check logic flow)
+                // For initialization, we might not want to focus, but this function is simple.
+            } else {
+                qtyInput.disabled = true;
+                qtyInput.value = 1; // Reset to default
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             var calendarEl = document.getElementById('calendar');
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -193,6 +215,17 @@
                 dayMaxEvents: true, 
             });
             calendar.render();
+
+            // Initialize equipment state on load (fixes re-render/back button issues)
+            document.querySelectorAll('input[name="equipment"]').forEach(function(checkbox) {
+                if (checkbox.checked) {
+                    const id = checkbox.id.replace('eq_', '');
+                    const qtyInput = document.getElementById('qty_' + id);
+                    if (qtyInput) {
+                        qtyInput.disabled = false;
+                    }
+                }
+            });
         });
     </script>
 </body>
