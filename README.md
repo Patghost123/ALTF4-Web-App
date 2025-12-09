@@ -37,16 +37,11 @@ Managing high-demand laboratories (Physics, Robotics, Chemistry) and specialized
 
 ## Installation & Setup
 
-1.  **Install Dependencies**
+1.  **Unzip Folder and Extract**
+
+2.  **Install Dependencies**
     ```bash
     pip install django
-    ```
-
-2.  **Clone the repository**
-    ```bash
-    git clone https://github.com/Patghost123/ALTF4-Web-App.git
-    cd ALTF4-Web-App
-    cd ALTF4_MAIN
     ```
 
 3.  **Run Migrations**
@@ -59,6 +54,8 @@ Managing high-demand laboratories (Physics, Robotics, Chemistry) and specialized
     ```bash
     python manage.py runserver
     ```
+    
+5.  **Click on the localhost link**
 
 ---
 
