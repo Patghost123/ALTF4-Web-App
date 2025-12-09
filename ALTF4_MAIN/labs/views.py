@@ -1,7 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse_lazy, reverse
+# Corrected Import: staff_member_required is in admin.views.decorators
 from django.contrib.admin.views.decorators import staff_member_required
-from .models import Lab
-from .forms import LabForm, EquipmentFormSet # Import forms and formsets
+# Corrected Import: login_required is in auth.decorators
+from django.contrib.auth.decorators import login_required
+from .models import Lab, Equipment
+from .forms import LabForm, EquipmentFormSet
 
 # --- STANDARD VIEWS ---
 
@@ -50,10 +54,4 @@ def lab_edit(request, slug):
         'lab': lab,
         'form': form,
         'formset': formset,
-    })
-
-def home_dashboard(request):
-    available_labs = Lab.objects.filter(is_active=True) 
-    return render(request, 'base.html', {
-        'labs': available_labs
     })
