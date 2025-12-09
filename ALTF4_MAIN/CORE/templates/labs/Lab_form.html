@@ -7,19 +7,20 @@
     <title>Edit Lab: {{ lab.name }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Ensures all input fields defined in forms.py are styled correctly */
+        /* Ensures all non-checkbox input fields defined in forms.py are styled correctly
+             This assumes forms.py is configured like this:
+             'last_maintenance': forms.DateInput(attrs={'class': 'w-full p-2 border rounded', 'type': 'date'}), 
+        */
         input:not([type="checkbox"]), textarea, select {
-            /* Styles set here match those passed via attrs in forms.py */
             @apply w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500;
         }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans">
 
-    <!-- Navigation (Copied from map/detail view for consistency) -->
     <nav class="bg-white border-b border-gray-200 px-6 py-4 mb-8 shadow-md">
         <div class="max-w-6xl mx-auto flex justify-between items-center">
-            <a href="{% url 'labs:index' %}" class="font-bold text-2xl text-indigo-600">STEM Hub</a>
+            <a href="{% url 'home' %}" class="font-bold text-2xl text-indigo-600">STEM Hub</a>
             <a href="{% url 'labs:detail' slug=lab.slug %}" class="text-sm text-gray-500 hover:text-indigo-600">&larr; Back to Lab Details</a>
         </div>
     </nav>
@@ -39,17 +40,17 @@
                 
                 <h2 class="text-xl font-semibold text-indigo-700 border-b pb-2">Primary Lab Details</h2>
                 
-                <!-- 1. MAIN LAB FORM (Capacity, Description, Status) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {% for field in form %}
-                        <div class="field-wrapper {% if field.field.widget.input_type == 'textarea' %}md:col-span-2{% endif %}">
+                        <div class="field-wrapper {% if field.field.widget.input_type == 'textarea' or field.name == 'safety_guidelines' %}md:col-span-2{% endif %}">
                             <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                                 {{ field.label }}
                             </label>
                             
-                            <!-- Renders field using classes defined in labs/forms.py -->
                             {% if field.field.widget.input_type == 'checkbox' %}
-                                <div class="mt-2">{{ field }}</div>
+                                <div class="mt-2 flex items-center gap-2">
+                                    {{ field }}
+                                </div>
                             {% else %}
                                 {{ field }}
                             {% endif %}
@@ -73,7 +74,6 @@
                     </button>
                 </h2>
 
-                <!-- 2. EQUIPMENT FORMSET (Add/Edit/Delete multiple related objects) -->
                 <div id="equipment-formset-container" class="space-y-6">
                     
                     {{ formset.management_form }} 
@@ -84,32 +84,47 @@
                         
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {% for field in equipment_form.visible_fields %}
-                                <div class="field-wrapper">
-                                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
-                                        {{ field.label }}
-                                    </label>
-                                    
-                                    {% if field.field.widget.input_type == 'checkbox' %}
-                                        <div class="mt-2">{{ field }}</div>
-                                    {% else %}
-                                        {{ field }}
-                                    {% endif %}
+                                
+                                {# MODIFICATION 1: Skip rendering the DELETE field here for existing forms #}
+                                {% if field.name == 'DELETE' %}
+                                    {# Skip visible rendering #}
+                                {% else %}
+                                    <div class="field-wrapper">
+                                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                            {{ field.label }}
+                                        </label>
+                                        
+                                        {% if field.field.widget.input_type == 'checkbox' %}
+                                            <div class="mt-2">{{ field }}</div>
+                                        {% else %}
+                                            {{ field }}
+                                        {% endif %}
 
-                                    {% for error in field.errors %}
-                                        <p class="text-red-500 text-xs mt-1">{{ error }}</p>
-                                    {% endfor %}
-                                </div>
+                                        {% for error in field.errors %}
+                                            <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                
                             {% endfor %}
                         </div>
 
-                        <!-- Hidden fields (ID, DELETE) -->
+                        {# Render ID/PK fields normally, and manually render DELETE as hidden #}
                         {% for field in equipment_form.hidden_fields %}
                             {{ field }}
                         {% endfor %}
 
-                        <div class="mt-3 flex items-center justify-end">
-                            <!-- Simplified Removal: This button handles deletion for existing or new forms -->
-                             <button type="button" class="remove-form-btn px-3 py-1 text-xs font-medium text-red-600 border border-red-300 rounded hover:bg-red-50 transition shadow-sm">
+                        {% if equipment_form.DELETE %}
+                        <div style="display: none;">
+                            {# We still render the DELETE input, but keep it hidden #}
+                            {{ equipment_form.DELETE }}
+                        </div>
+                        {% endif %}
+
+
+                        {# MODIFICATION 2: Apply flex/justify-end to the button wrapper #}
+                        <div class="mt-3 flex justify-end">
+                            <button type="button" class="remove-form-btn px-3 py-1 text-xs font-medium text-red-600 border border-red-300 rounded hover:bg-red-50 transition shadow-sm">
                                 Remove Item
                             </button>
                         </div>
@@ -117,14 +132,51 @@
                     </div>
                     {% endfor %}
 
-                    <!-- Empty Form Template (Must be outside the loop and hidden) -->
                     <div id="empty-form" style="display: none;">
-                        {% include 'labs/equipment_form_template.html' with form=formset.empty_form %}
+                        {# MODIFICATION 3: Explicitly define the contents of the empty form template #}
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {% for field in formset.empty_form.visible_fields %}
+                                
+                                {% if field.name == 'DELETE' %}
+                                    {# Skip visible rendering for dynamically added forms as well #}
+                                {% else %}
+                                    <div class="field-wrapper">
+                                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                                            {{ field.label }}
+                                        </label>
+                                        {% if field.field.widget.input_type == 'checkbox' %}
+                                            <div class="mt-2">{{ field }}</div>
+                                        {% else %}
+                                            {{ field }}
+                                        {% endif %}
+                                        {% for error in field.errors %}
+                                            <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            
+                            {% endfor %}
+                        </div>
+
+                        {% for field in formset.empty_form.hidden_fields %}
+                            {{ field }}
+                        {% endfor %}
+
+                        {# Ensure the DELETE field is correctly rendered as hidden in the template for new forms #}
+                        {% if formset.empty_form.DELETE %}
+                        <div style="display: none;">{{ formset.empty_form.DELETE }}</div>
+                        {% endif %}
+
+                        {# Add the button wrapper for the dynamically added form #}
+                        <div class="mt-3 flex justify-end">
+                            <button type="button" class="remove-form-btn px-3 py-1 text-xs font-medium text-red-600 border border-red-300 rounded hover:bg-red-50 transition">
+                                Remove Item
+                            </button>
+                        </div>
                     </div>
 
                 </div>
                 
-                <!-- 3. ACTION BUTTONS -->
                 <div class="pt-4 border-t border-gray-100 flex justify-end gap-3">
                     <a href="{% url 'labs:detail' slug=lab.slug %}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 shadow-sm">
                         Cancel (Go Back)
@@ -142,7 +194,8 @@
             const container = document.getElementById('equipment-formset-container');
             const addButton = document.getElementById('add-equipment-btn');
             const totalForms = document.getElementById('id_{{ formset.prefix }}-TOTAL_FORMS');
-            const emptyFormTemplate = document.getElementById('empty-form').innerHTML;
+            // IMPORTANT: The innerHTML of the hidden div is the template.
+            const emptyFormTemplate = document.getElementById('empty-form').innerHTML; 
             
             let formCount = parseInt(totalForms.value);
 
@@ -161,15 +214,16 @@
             addButton.addEventListener('click', function(e) {
                 e.preventDefault();
                 
-                // 1. Generate new form HTML
+                // 1. Generate new form HTML, replacing '__prefix__' with the current form count
                 const newFormHtml = emptyFormTemplate.replace(/__prefix__/g, formCount);
                 
                 // 2. Create wrapper and insert HTML
                 const newForm = document.createElement('div');
+                // The new form needs the parent container classes
                 newForm.className = 'equipment-form p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50 mt-4';
                 newForm.innerHTML = newFormHtml;
 
-                // 3. Prepend header
+                // 3. Prepend header (must be created/prepended in JS if it's not in the template)
                 const header = document.createElement('h3');
                 header.className = 'font-medium text-gray-800 mb-3';
                 newForm.prepend(header); 
@@ -197,22 +251,21 @@
                     // Find the hidden DELETE checkbox within the form
                     const deleteInput = formToRemove.querySelector('input[name$="-DELETE"]');
                     
-                    if (deleteInput && deleteInput.value !== 'on') {
-                        // This is an EXISTING form, so we mark it for deletion and hide it visually.
-                        deleteInput.checked = true;
+                    // We check if the form has a primary key (PK) field to determine if it's an existing object
+                    const pkInput = formToRemove.querySelector('input[name$="-id"]');
+                    
+                    if (pkInput && pkInput.value) {
+                        // This is an EXISTING form (has a PK), so we mark it for deletion and hide it visually.
+                        if (deleteInput) {
+                             deleteInput.checked = true; // Mark for deletion
+                        }
                         formToRemove.style.display = 'none'; 
-                        // Do NOT decrement formCount for existing items (Django needs the count to remain correct)
-                    } else if (deleteInput && deleteInput.value === 'on') {
+                        // Do NOT decrement formCount/TOTAL_FORMS for existing items marked for deletion
+                    } else {
                         // This is a NEWLY ADDED form (no PK), so we remove it completely.
                         formToRemove.remove();
                         
                         // Decrement totalForms count and re-index the visual headers
-                        formCount--;
-                        totalForms.value = formCount;
-                        updateFormIndexes();
-                    } else {
-                        // Fallback for truly new forms
-                        formToRemove.remove();
                         formCount--;
                         totalForms.value = formCount;
                         updateFormIndexes();

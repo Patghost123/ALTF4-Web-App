@@ -7,6 +7,7 @@ class Lab(models.Model):
     description = models.TextField()
     map_svg_id = models.CharField(max_length=50, unique=True, help_text="Matches ID in Figma SVG")
     is_active = models.BooleanField(default=True)
+    safety_guidelines = models.TextField()
 
     def __str__(self):
         return self.name

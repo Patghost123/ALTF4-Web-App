@@ -5,13 +5,16 @@ from .models import Lab, Equipment
 # --- 1. Base Form for Lab Details ---
 class LabForm(forms.ModelForm):
     """
-    Form for updating the main Lab attributes (name, description, capacity, status).
+    Form for updating the main Lab attributes (name, description, capacity, status, safety_guidelines).
     """
     class Meta:
         model = Lab
-        fields = ['name', 'capacity', 'description', 'is_active']
+        # ADDED 'safety_guidelines' to the fields list
+        fields = ['name', 'capacity', 'description', 'is_active', 'safety_guidelines'] 
         widgets = {
+            # Use 'rows' attribute for Textareas to give them height
             'description': forms.Textarea(attrs={'rows': 4, 'class': 'w-full p-2 border rounded'}),
+            'safety_guidelines': forms.Textarea(attrs={'rows': 6, 'class': 'w-full p-2 border rounded'}), # Added Widget
             'name': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
             'capacity': forms.NumberInput(attrs={'class': 'w-full p-2 border rounded'}),
         }
@@ -27,7 +30,6 @@ class EquipmentItemForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
             'serial_number': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
-            # FIX: Use DateInput widget to render a calendar control
             'last_maintenance': forms.DateInput(attrs={'class': 'w-full p-2 border rounded', 'type': 'date'}), 
         }
 
@@ -35,7 +37,7 @@ class EquipmentItemForm(forms.ModelForm):
 EquipmentFormSet = inlineformset_factory(
     Lab,
     Equipment,
-    form=EquipmentItemForm, # Use the custom form definition
+    form=EquipmentItemForm,
     fields=('name', 'serial_number', 'is_operational', 'last_maintenance'),
     extra=1,
     can_delete=True
