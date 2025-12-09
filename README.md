@@ -38,7 +38,9 @@ Managing high-demand laboratories (Physics, Robotics, Chemistry) and specialized
 ## Installation & Setup
 
 1.  **Unzip Folder and Extract**
-
+    cd ALTF4-Web-App
+    cd ALTF4_MAIN
+    
 2.  **Install Dependencies**
     ```bash
     pip install django
