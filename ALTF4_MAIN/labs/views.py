@@ -1,17 +1,20 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from .models import Lab, Equipment
 from .forms import LabForm, EquipmentFormSet # Import forms and formsets
 
 # --- STANDARD VIEWS ---
 
+@login_required
 def index(request):
     """ Shows the map/list view of all labs """
     # Fetch ALL labs, regardless of is_active status
     labs = Lab.objects.all() 
     return render(request, 'labs/Labs_map.html', {'labs': labs})
 
+@login_required
 def lab_detail(request, slug):
     """ Detailed view for a specific lab """
     lab = get_object_or_404(Lab, slug=slug) 

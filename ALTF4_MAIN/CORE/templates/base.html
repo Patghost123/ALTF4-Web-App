@@ -287,12 +287,13 @@
       {% if user.is_staff %}
         <a href="{% url 'reservations:dashboard' %}" style="color: #ef4444; font-weight: bold; border: 1px solid #fca5a5; padding: 0.25rem 0.75rem; border-radius: 9999px;">Admin Panel</a>
       {% endif %}
-      <a href="{% url 'interactive_auth' %}" class="logout-btn">Log Out</a>
+      <!-- UPDATED LOGOUT LINK -->
+      <a href="{% url 'logout' %}" class="logout-btn">Log Out</a>
     </nav>
   </header>
 
   <section class="hero">
-    <h1>Welcome back, Student</h1>
+    <h1>Welcome back, {{ user.username }}</h1>
     <p>Your academic dashboard for labs, equipment, and resources.</p>
     <div class="hero-buttons">
       <button class="view-labs" onclick="scrollToLabs()">Browse Labs</button>
