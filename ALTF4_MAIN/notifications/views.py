@@ -34,14 +34,15 @@ def create_announcement(request):
             else:
                 recipients = User.objects.all()
 
-            # 2. Bulk Create Notifications (More efficient than looping one by one)
+            # 2. Bulk Create Notifications
             notifications_to_create = []
             for user in recipients:
                 notifications_to_create.append(
                     Notification(
                         recipient=user,
                         message=msg,
-                        notification_type=notif_type
+                        notification_type=notif_type,
+                        category='announcement' # THIS IS THE KEY CHANGE
                     )
                 )
             

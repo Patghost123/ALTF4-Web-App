@@ -5,16 +5,14 @@ from .models import Lab, Equipment
 # --- 1. Base Form for Lab Details ---
 class LabForm(forms.ModelForm):
     """
-    Form for updating the main Lab attributes (name, description, capacity, status, safety_guidelines).
+    Form for updating the main Lab attributes.
     """
     class Meta:
         model = Lab
-        # ADDED 'safety_guidelines' to the fields list
-        fields = ['name', 'capacity', 'description', 'is_active', 'safety_guidelines'] 
+        fields = ['name', 'capacity', 'description', 'is_active', 'safety_guidelines']
         widgets = {
-            # Use 'rows' attribute for Textareas to give them height
             'description': forms.Textarea(attrs={'rows': 4, 'class': 'w-full p-2 border rounded'}),
-            'safety_guidelines': forms.Textarea(attrs={'rows': 6, 'class': 'w-full p-2 border rounded'}), # Added Widget
+            'safety_guidelines': forms.Textarea(attrs={'rows': 6, 'class': 'w-full p-2 border rounded'}),
             'name': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
             'capacity': forms.NumberInput(attrs={'class': 'w-full p-2 border rounded'}),
         }
@@ -24,13 +22,24 @@ class EquipmentItemForm(forms.ModelForm):
     """
     Custom form used in the formset to apply widgets and simplify field rendering.
     """
+    # 1. Explicitly define the field here to make it optional
+    description = forms.CharField(
+        required=False,  # <--- THIS FIXES THE ERROR
+        widget=forms.Textarea(attrs={
+            'class': 'w-full p-2 border rounded', 
+            'rows': 2, 
+            'placeholder': 'Brief description...'
+        })
+    )
+
     class Meta:
         model = Equipment
-        fields = ('name', 'serial_number', 'is_operational', 'last_maintenance')
+        fields = ('name', 'serial_number', 'description', 'is_operational', 'last_maintenance')
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
-            'serial_number': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
-            'last_maintenance': forms.DateInput(attrs={'class': 'w-full p-2 border rounded', 'type': 'date'}), 
+            'name': forms.TextInput(attrs={'class': 'w-full p-2 border rounded', 'placeholder': 'Equipment Name'}),
+            'serial_number': forms.TextInput(attrs={'class': 'w-full p-2 border rounded', 'placeholder': 'S/N'}),
+            # Note: 'description' widget is now defined above, so we can remove it from here
+            'last_maintenance': forms.DateInput(attrs={'class': 'w-full p-2 border rounded', 'type': 'date'}),
         }
 
 # --- 2. Formset for Equipment Management ---
@@ -38,7 +47,8 @@ EquipmentFormSet = inlineformset_factory(
     Lab,
     Equipment,
     form=EquipmentItemForm,
-    fields=('name', 'serial_number', 'is_operational', 'last_maintenance'),
+    # ADDED 'description' here as well
+    fields=('name', 'serial_number', 'description', 'is_operational', 'last_maintenance'),
     extra=1,
     can_delete=True
 )

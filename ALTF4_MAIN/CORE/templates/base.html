@@ -125,7 +125,7 @@
       overflow-y: auto;
     }
 
-    /* --- Dynamic Notification Colors --- */
+    /* --- Dynamic Notification Colors (Dropdown) --- */
     .notif-item {
       padding: 0.8rem 1rem;
       border-bottom: 1px solid #e2e8f0;
@@ -135,33 +135,15 @@
       justify-content: space-between;
       align-items: flex-start;
       gap: 10px;
-      /* Default border incase type is missing */
       border-left: 4px solid #cbd5e1; 
       background: white;
     }
 
-    /* Warning (Red) */
-    .notif-item.warning {
-        border-left-color: #ef4444; 
-        background: #fef2f2;
-    }
-    
-    /* Info (Blue) */
-    .notif-item.info {
-        border-left-color: #3b82f6;
-        background: #eff6ff;
-    }
+    .notif-item.warning { border-left-color: #ef4444; background: #fef2f2; }
+    .notif-item.info { border-left-color: #3b82f6; background: #eff6ff; }
+    .notif-item.success { border-left-color: #22c55e; background: #f0fdf4; }
 
-    /* Success (Green) */
-    .notif-item.success {
-        border-left-color: #22c55e;
-        background: #f0fdf4;
-    }
-
-    .notif-item:hover {
-       filter: brightness(0.98); /* Slight darken on hover */
-    }
-
+    .notif-item:hover { filter: brightness(0.98); }
     .notif-item:last-child { border-bottom: none; }
     
     .notif-item .mark-read {
@@ -320,53 +302,65 @@
       transition: all 0.2s;
     }
 
-    /* Primary Button (Book Slot) */
-    .btn-book {
-      background: #2563eb;
-      color: white;
-      border: none;
-    }
+    .btn-book { background: #2563eb; color: white; border: none; }
     .btn-book:hover { background: #1d4ed8; }
-
-    /* Secondary Button (View in Map) */
-    .btn-map {
-      background: white;
-      color: #2563eb;
-      border: 1px solid #2563eb;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    .btn-map { background: white; color: #2563eb; border: 1px solid #2563eb; display: flex; align-items: center; justify-content: center; }
     .btn-map:hover { background: #eff6ff; }
 
 
-    /* --- Notifications (Old Section - Can be removed if needed) --- */
+    /* --- NEW NOTIFICATIONS SECTION STYLES --- */
     .notifications-wrapper {
       padding: 0 5%;
       margin-bottom: 4rem;
     }
     .notifications {
-      background: #fffbeb;
-      border-left: 5px solid #f59e0b;
-      padding: 1.5rem 2rem;
-      border-radius: 0.5rem;
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
       box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      border: 1px solid #f1f5f9;
     }
-    .notifications h2 { margin-bottom: 1rem; font-size: 1.2rem; color: #92400e; }
+    .notifications h2 { margin-bottom: 1.5rem; font-size: 1.2rem; color: #1e293b; }
     .notifications ul { list-style: none; padding: 0; }
-    .notifications li {
+    
+    /* Main List Item Style */
+    .update-item {
+      padding: 1rem;
       margin-bottom: 0.8rem;
+      border-radius: 0.5rem;
+      font-size: 0.95rem;
+      color: #334155;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      font-size: 0.95rem;
-      color: #78350f;
+      gap: 1rem;
+      border-left: 5px solid #cbd5e1;
+      background: #f8fafc;
+      transition: transform 0.2s;
     }
-    .notifications li::before {
-      content: '•';
-      color: #f59e0b;
-      font-size: 1.5rem;
-      line-height: 0.8rem;
+    .update-item:hover { transform: translateX(5px); }
+
+    /* Color Coding Logic */
+    .update-item.warning {
+        border-left-color: #ef4444; /* Red */
+        background: #fef2f2;
+        color: #991b1b;
+    }
+    .update-item.info {
+        border-left-color: #3b82f6; /* Blue */
+        background: #eff6ff;
+        color: #1e40af;
+    }
+    .update-item.success {
+        border-left-color: #22c55e; /* Green */
+        background: #f0fdf4;
+        color: #166534;
+    }
+
+    .update-date {
+        margin-left: auto;
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-weight: 500;
     }
 
     /* --- Footer --- */
@@ -513,9 +507,29 @@
   <div class="section-title">Updates & Alerts</div>
   <section class="notifications-wrapper">
     <div class="notifications">
-      <h2>Recent Notifications</h2>
+      <h2>Recent Announcements</h2>
       <ul id="notifications-list">
-        </ul>
+        {% if recent_notifications %}
+            {% for note in recent_notifications %}
+                <li class="update-item {{ note.notification_type }}">
+                    {% if note.notification_type == 'success' %}
+                        <span>✅</span>
+                    {% elif note.notification_type == 'warning' %}
+                        <span>⚠️</span>
+                    {% else %}
+                        <span>📢</span>
+                    {% endif %}
+                    
+                    <span>{{ note.message }}</span>
+                    <span class="update-date">{{ note.created_at|date:"M d" }}</span>
+                </li>
+            {% endfor %}
+        {% else %}
+            <li class="update-item" style="border-left-color: #cbd5e1; justify-content: center; color: #94a3b8;">
+                No recent announcements.
+            </li>
+        {% endif %}
+      </ul>
     </div>
   </section>
 
@@ -533,20 +547,6 @@
   </div>
 
   <script>
-    // --- Mock Notifications (Existing) ---
-    const notifications = [
-      "Physics Lab maintenance scheduled for 12 Dec, 2 PM",
-      "Robotics Lab is fully booked for the current week",
-      "New shipment of Chemicals arrived in Lab 2"
-    ];
-
-    const notifContainer = document.getElementById('notifications-list');
-    if(notifContainer){
-        notifications.forEach(note => {
-          notifContainer.innerHTML += `<li>${note}</li>`;
-        });
-    }
-
     // --- Modal Functions ---
     const modal = document.getElementById('modal');
     const modalContent = document.getElementById('modal-content');

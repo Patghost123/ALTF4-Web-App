@@ -16,6 +16,7 @@ class Equipment(models.Model):
     lab = models.ForeignKey(Lab, related_name='equipment', on_delete=models.SET_NULL, null=True)
     name = models.CharField(max_length=200)
     serial_number = models.CharField(max_length=100, unique=True)
+    description = models.TextField(null=True)
     is_operational = models.BooleanField(default=True)
     last_maintenance = models.DateField()
 

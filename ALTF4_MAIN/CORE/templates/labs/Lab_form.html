@@ -7,10 +7,6 @@
     <title>Edit Lab: {{ lab.name }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Ensures all non-checkbox input fields defined in forms.py are styled correctly
-             This assumes forms.py is configured like this:
-             'last_maintenance': forms.DateInput(attrs={'class': 'w-full p-2 border rounded', 'type': 'date'}), 
-        */
         input:not([type="checkbox"]), textarea, select {
             @apply w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500;
         }
@@ -85,11 +81,11 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {% for field in equipment_form.visible_fields %}
                                 
-                                {# MODIFICATION 1: Skip rendering the DELETE field here for existing forms #}
                                 {% if field.name == 'DELETE' %}
                                     {# Skip visible rendering #}
                                 {% else %}
-                                    <div class="field-wrapper">
+                                    {# Logic: If field is 'description', make it span 3 columns #}
+                                    <div class="field-wrapper {% if field.name == 'description' %}md:col-span-3{% endif %}">
                                         <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                                             {{ field.label }}
                                         </label>
@@ -109,20 +105,16 @@
                             {% endfor %}
                         </div>
 
-                        {# Render ID/PK fields normally, and manually render DELETE as hidden #}
                         {% for field in equipment_form.hidden_fields %}
                             {{ field }}
                         {% endfor %}
 
                         {% if equipment_form.DELETE %}
                         <div style="display: none;">
-                            {# We still render the DELETE input, but keep it hidden #}
                             {{ equipment_form.DELETE }}
                         </div>
                         {% endif %}
 
-
-                        {# MODIFICATION 2: Apply flex/justify-end to the button wrapper #}
                         <div class="mt-3 flex justify-end">
                             <button type="button" class="remove-form-btn px-3 py-1 text-xs font-medium text-red-600 border border-red-300 rounded hover:bg-red-50 transition shadow-sm">
                                 Remove Item
@@ -133,14 +125,14 @@
                     {% endfor %}
 
                     <div id="empty-form" style="display: none;">
-                        {# MODIFICATION 3: Explicitly define the contents of the empty form template #}
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {% for field in formset.empty_form.visible_fields %}
                                 
                                 {% if field.name == 'DELETE' %}
-                                    {# Skip visible rendering for dynamically added forms as well #}
+                                    {# Skip #}
                                 {% else %}
-                                    <div class="field-wrapper">
+                                    {# Logic: If field is 'description', make it span 3 columns #}
+                                    <div class="field-wrapper {% if field.name == 'description' %}md:col-span-3{% endif %}">
                                         <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
                                             {{ field.label }}
                                         </label>
@@ -162,12 +154,10 @@
                             {{ field }}
                         {% endfor %}
 
-                        {# Ensure the DELETE field is correctly rendered as hidden in the template for new forms #}
                         {% if formset.empty_form.DELETE %}
                         <div style="display: none;">{{ formset.empty_form.DELETE }}</div>
                         {% endif %}
 
-                        {# Add the button wrapper for the dynamically added form #}
                         <div class="mt-3 flex justify-end">
                             <button type="button" class="remove-form-btn px-3 py-1 text-xs font-medium text-red-600 border border-red-300 rounded hover:bg-red-50 transition">
                                 Remove Item
@@ -189,17 +179,14 @@
         </div>
     </main>
     <script>
-        // Javascript for dynamic formset management (Adding and removing new equipment rows)
         document.addEventListener('DOMContentLoaded', function() {
             const container = document.getElementById('equipment-formset-container');
             const addButton = document.getElementById('add-equipment-btn');
             const totalForms = document.getElementById('id_{{ formset.prefix }}-TOTAL_FORMS');
-            // IMPORTANT: The innerHTML of the hidden div is the template.
             const emptyFormTemplate = document.getElementById('empty-form').innerHTML; 
             
             let formCount = parseInt(totalForms.value);
 
-            // Function to update item numbering when forms are added/removed
             function updateFormIndexes() {
                 const forms = container.querySelectorAll('.equipment-form');
                 forms.forEach((form, index) => {
@@ -210,62 +197,44 @@
                 });
             }
             
-            // --- ADD BUTTON LOGIC ---
             addButton.addEventListener('click', function(e) {
                 e.preventDefault();
-                
-                // 1. Generate new form HTML, replacing '__prefix__' with the current form count
                 const newFormHtml = emptyFormTemplate.replace(/__prefix__/g, formCount);
                 
-                // 2. Create wrapper and insert HTML
                 const newForm = document.createElement('div');
-                // The new form needs the parent container classes
                 newForm.className = 'equipment-form p-4 border border-gray-200 rounded-lg shadow-sm bg-gray-50 mt-4';
                 newForm.innerHTML = newFormHtml;
 
-                // 3. Prepend header (must be created/prepended in JS if it's not in the template)
                 const header = document.createElement('h3');
                 header.className = 'font-medium text-gray-800 mb-3';
                 newForm.prepend(header); 
 
-                // 4. Attach removal listener
                 const removeBtn = newForm.querySelector('.remove-form-btn');
                 if (removeBtn) {
                     removeBtn.addEventListener('click', handleRemoveForm);
                 }
 
-                // 5. Append to container
                 container.appendChild(newForm);
 
-                // 6. Update counts
                 formCount++;
                 totalForms.value = formCount;
                 updateFormIndexes();
             });
 
-            // --- REMOVE BUTTON LOGIC ---
             function handleRemoveForm(e) {
                 e.preventDefault();
                 const formToRemove = e.target.closest('.equipment-form');
                 if (formToRemove) {
-                    // Find the hidden DELETE checkbox within the form
                     const deleteInput = formToRemove.querySelector('input[name$="-DELETE"]');
-                    
-                    // We check if the form has a primary key (PK) field to determine if it's an existing object
                     const pkInput = formToRemove.querySelector('input[name$="-id"]');
                     
                     if (pkInput && pkInput.value) {
-                        // This is an EXISTING form (has a PK), so we mark it for deletion and hide it visually.
                         if (deleteInput) {
-                             deleteInput.checked = true; // Mark for deletion
+                             deleteInput.checked = true; 
                         }
                         formToRemove.style.display = 'none'; 
-                        // Do NOT decrement formCount/TOTAL_FORMS for existing items marked for deletion
                     } else {
-                        // This is a NEWLY ADDED form (no PK), so we remove it completely.
                         formToRemove.remove();
-                        
-                        // Decrement totalForms count and re-index the visual headers
                         formCount--;
                         totalForms.value = formCount;
                         updateFormIndexes();
@@ -273,12 +242,10 @@
                 }
             }
 
-            // Attach listener to all existing "Remove Item" buttons on load
             document.querySelectorAll('.remove-form-btn').forEach(btn => {
                 btn.addEventListener('click', handleRemoveForm);
             });
 
-            // Initial setup for existing forms
             updateFormIndexes();
         });
     </script>

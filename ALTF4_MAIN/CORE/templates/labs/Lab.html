@@ -9,34 +9,28 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
 
-    <!-- Navigation Placeholder -->
     <nav class="bg-white border-b border-gray-200 px-6 py-4 mb-8">
-        <div class="max-w-5xl mx-auto flex justify-between items-center">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
             <a href="{% url 'home' %}" class="font-bold text-xl text-indigo-600">STEM Hub</a>
             <a href="{% url 'labs:index' %}" class="text-sm text-gray-500 hover:text-indigo-600">&larr; Back to Map</a>
         </div>
     </nav>
 
-    <main class="max-w-5xl mx-auto px-6 pb-12">
+    <main class="max-w-6xl mx-auto px-6 pb-12">
         
-        <!-- Header Section -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8">
             <div class="flex flex-col md:flex-row justify-between md:items-start gap-6">
                 
-                <!-- Lab Title and Status -->
                 <div>
                     <div class="flex items-center gap-3 mb-2">
                         <h1 class="text-3xl font-extrabold text-gray-900">{{ lab.name }}</h1>
                         
-                        <!-- Status Badges based on lab.is_active -->
                         {% if lab.is_active %}
                             <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">Active</span>
                         {% else %}
-                            <!-- Display Maintenance/Unavailable Status -->
-                            <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">Maintenance/Unavailable</span>
+                            <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">Maintenance</span>
                         {% endif %}
                         
-                        <!-- STAFF EDIT BUTTON (New Feature) -->
                         {% if user.is_staff %}
                         <a href="{% url 'labs:edit' slug=lab.slug %}" 
                            class="text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-lg ml-4 flex items-center gap-1 transition-colors">
@@ -48,18 +42,15 @@
                     <p class="text-gray-500 text-sm font-mono">ID: {{ lab.map_svg_id }}</p>
                 </div>
                 
-                <!-- Action Card -->
                 <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100 min-w-[200px] text-center">
                     <p class="text-xs text-indigo-600 uppercase font-bold tracking-wider mb-1">Capacity</p>
                     <p class="2xl font-bold text-indigo-900 mb-3">{{ lab.capacity }} Students</p>
                     
                     {% if lab.is_active %}
-                        <!-- Link to Reservation App (Active) -->
                         <a href="{% url 'reservations:make_reservation' lab_id=lab.id %}" class="block w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition shadow-md">
                             Book Now
                         </a>
                     {% else %}
-                        <!-- Button for Maintenance State (Disabled) -->
                         <button disabled class="block w-full py-2 bg-gray-300 text-gray-500 font-semibold rounded-lg cursor-not-allowed">
                             Unavailable
                         </button>
@@ -73,10 +64,8 @@
             </div>
         </div>
 
-        <!-- Equipment Inventory Section -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <!-- Left Column: Equipment List (No change here) -->
             <div class="lg:col-span-2">
                 <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
@@ -88,30 +77,38 @@
                         <table class="w-full text-left">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Item Name</th>
+                                    <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-1/4">Item Name</th>
+                                    <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider w-1/2">Description</th>
                                     <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Maintained</th>
+                                    <th class="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Maintained</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
                                 {% for item in lab.equipment.all %}
                                 <tr class="hover:bg-gray-50 transition">
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4 align-top">
                                         <div class="font-medium text-gray-900">{{ item.name }}</div>
-                                        <div class="text-xs text-gray-400">SN: {{ item.serial_number }}</div>
+                                        <div class="text-xs text-gray-400 mt-1">SN: {{ item.serial_number }}</div>
                                     </td>
-                                    <td class="px-6 py-4">
+                                    
+                                    <td class="px-6 py-4 align-top">
+                                        <p class="text-sm text-gray-600">
+                                            {{ item.description|default:"No description provided." }}
+                                        </p>
+                                    </td>
+
+                                    <td class="px-6 py-4 align-top">
                                         {% if item.is_operational %}
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                 Operational
                                             </span>
                                         {% else %}
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                Broken/Unavailable
+                                                Broken
                                             </span>
                                         {% endif %}
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">
+                                    <td class="px-6 py-4 align-top text-sm text-gray-500 whitespace-nowrap">
                                         {{ item.last_maintenance|date:"M d, Y" }}
                                     </td>
                                 </tr>
@@ -126,14 +123,12 @@
                 </div>
             </div>
 
-            <!-- Right Column: Rules / Guidelines (DYNAMICALLY POPULATED) -->
             <div>
                 <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     Safety Guidelines
                 </h2>
                 <div class="bg-orange-50 rounded-xl p-6 border border-orange-100 text-orange-800">
-                    <!-- NEW: Display content from the database field -->
                     {% if lab.safety_guidelines %}
                         <div class="prose prose-sm text-orange-800">
                             {{ lab.safety_guidelines|linebreaks }}

@@ -4,17 +4,20 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from labs.models import Lab
+from notifications.models import Notification
 
-# Protect the home view so users cannot bypass login to see the dashboard
 @login_required
 def home_redirect_view(request):
-    # 2. FETCH THE DATA
-    # We filter by is_active=True so only active labs show on the dashboard
     labs = Lab.objects.filter(is_active=True) 
     
-    # 3. PASS THE DATA TO THE TEMPLATE
+    recent_announcements = Notification.objects.filter(
+        recipient=request.user,
+        category='announcement' 
+    ).order_by('-created_at')[:5]
+
     context = {
-        'labs': labs
+        'labs': labs,
+        'recent_notifications': recent_announcements,
     }
     
     return render(request, 'base.html', context)
